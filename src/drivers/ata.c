@@ -1,5 +1,5 @@
-#include "ata.h"
-#include "io.h"
+#include <drivers/ata.h>
+#include <arch/x86_64/io.h>
 
 #define ATA_PRIMARY_BASE   0x1F0
 #define ATA_SECONDARY_BASE 0x170

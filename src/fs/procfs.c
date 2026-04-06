@@ -1,5 +1,5 @@
-#include "procfs.h"
-#include "kmalloc.h"
+#include <fs/procfs.h>
+#include <lib/kmalloc.h>
 
 
 

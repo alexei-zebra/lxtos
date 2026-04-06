@@ -1,6 +1,6 @@
 #include <stdint.h>
-#include "kprint.h"
-#include "framebuffer.h"
+#include <console/kprint.h>
+#include <drivers/framebuffer.h>
 
 void kputs(const char *s)
 {

@@ -1,10 +1,10 @@
-#include "kapi.h"
-#include "kprint.h"
-#include "kstring.h"
-#include "keyboard.h"
-#include "kmalloc.h"
-#include "vfs.h"
-#include "framebuffer.h"
+#include <kernel/kapi.h>
+#include <console/kprint.h>
+#include <lib/kstring.h>
+#include <drivers/keyboard.h>
+#include <lib/kmalloc.h>
+#include <fs/vfs.h>
+#include <drivers/framebuffer.h>
 
 
 static void     _puts   (const char *s)                          { kputs(s); }

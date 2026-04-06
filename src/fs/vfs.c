@@ -1,6 +1,6 @@
-#include "vfs.h"
-#include "kmalloc.h"
-#include "kstring.h"
+#include <fs/vfs.h>
+#include <lib/kmalloc.h>
+#include <lib/kstring.h>
 
 vfs_node_t *vfs_root = NULL;
 

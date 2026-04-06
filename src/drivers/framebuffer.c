@@ -1,5 +1,5 @@
-#include "framebuffer.h"
-#include "font.h"
+#include <drivers/framebuffer.h>
+#include <console/font.h>
 #include <stdint.h>
 
 static void    *fb_addr;

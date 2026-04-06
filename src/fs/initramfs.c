@@ -1,6 +1,6 @@
-#include "initramfs.h"
-#include "vfs.h"
-#include "kmalloc.h"
+#include <fs/initramfs.h>
+#include <fs/vfs.h>
+#include <lib/kmalloc.h>
 
 #define CPIO_MAGIC "070701"
 #define CPIO_MAGIC_CRC "070702"

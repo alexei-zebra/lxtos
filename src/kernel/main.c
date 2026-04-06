@@ -2,15 +2,15 @@
 #include <stddef.h>
 
 #include "limine.h"
-#include "framebuffer.h"
-#include "keyboard.h"
-#include "shell.h"
-#include "kmalloc.h"
-#include "vfs.h"
-#include "tmpfs.h"
-#include "procfs.h"
-#include "initramfs.h"
-#include "ata.h"
+#include <drivers/framebuffer.h>
+#include <drivers/keyboard.h>
+#include <console/shell.h>
+#include <lib/kmalloc.h>
+#include <fs/vfs.h>
+#include <fs/tmpfs.h>
+#include <fs/procfs.h>
+#include <fs/initramfs.h>
+#include <drivers/ata.h>
 
 extern uint8_t _binary_build_initramfs_cpio_start[];
 extern uint8_t _binary_build_initramfs_cpio_end[];

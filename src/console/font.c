@@ -1,4 +1,4 @@
-#include "font.h"
+#include <console/font.h>
 #include <stdint.h>
 
 char font8x8_basic[128][8] = {

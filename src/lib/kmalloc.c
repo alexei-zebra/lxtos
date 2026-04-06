@@ -1,4 +1,4 @@
-#include "kmalloc.h"
+#include <lib/kmalloc.h>
 
 
 #define ALIGN8(x) (((x) + 7) & ~7)

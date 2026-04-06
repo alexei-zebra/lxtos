@@ -1,5 +1,5 @@
-#include "tmpfs.h"
-#include "kmalloc.h"
+#include <fs/tmpfs.h>
+#include <lib/kmalloc.h>
 
 #define TMPFS_MAX_CHILDREN 64
 

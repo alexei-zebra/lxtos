@@ -1,5 +1,5 @@
 #pragma once
-#include "vfs.h"
+#include <fs/vfs.h>
 
 typedef int64_t (*procfs_read_fn)(void *buf, uint64_t size);
 

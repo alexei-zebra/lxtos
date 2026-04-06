@@ -24,7 +24,7 @@ $(KERNEL): $(OBJS) build/initramfs_bin.o
 	$(LD) $(LDFLAGS) -o $@ $^
 
 build/%.o: src/%.c
-	@mkdir -p build
+	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 initramfs:

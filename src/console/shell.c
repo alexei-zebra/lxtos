@@ -1,11 +1,11 @@
-#include "shell.h"
-#include "kapi.h"
-#include "vfs.h"
-#include "ata.h"
-#include "kprint.h"
-#include "framebuffer.h"
-#include "keyboard.h"
-#include "kstring.h"
+#include <console/shell.h>
+#include <kernel/kapi.h>
+#include <fs/vfs.h>
+#include <drivers/ata.h>
+#include <console/kprint.h>
+#include <drivers/framebuffer.h>
+#include <drivers/keyboard.h>
+#include <lib/kstring.h>
 
 #define INPUT_BUF_SIZE 256
 

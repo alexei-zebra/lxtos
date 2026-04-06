@@ -1,4 +1,4 @@
-#include "kstring.h"
+#include <lib/kstring.h>
 
 int kstrlen(const char *s)
 {
