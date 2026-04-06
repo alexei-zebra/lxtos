@@ -1,4 +1,7 @@
 #pragma once
 #include <stdint.h>
 
-extern char font8x8_basic[128][8];
+#define FONT_WIDTH  8
+#define FONT_HEIGHT 16
+
+extern uint8_t font8x16[128][16];

@@ -8,7 +8,6 @@ uint64_t        fb_height;
 static uint64_t fb_pitch;
 static uint16_t fb_bpp;
 static uint32_t fb_bytes_per_pixel;
-
 uint32_t fb_cursor_x = 0;
 uint32_t fb_cursor_y = 0;
 
@@ -43,13 +42,12 @@ void fb_fill(uint32_t color)
 void fb_putchar(uint32_t x, uint32_t y, char c, uint32_t fg, uint32_t bg)
 {
     if ((unsigned char)c >= 128) c = '?';
-    char *glyph = font8x8_basic[(unsigned char)c];
-    for (int row = 0; row < 8; row++) {
-        for (int col = 0; col < 8; col++) {
+    uint8_t *glyph = font8x16[(unsigned char)c];
+    for (int row = 0; row < FONT_HEIGHT; row++)
+        for (int col = 0; col < FONT_WIDTH; col++) {
             int bit = (glyph[row] >> (7 - col)) & 1;
             fb_putpixel(x + col, y + row, bit ? fg : bg);
         }
-    }
 }
 
 void fb_puts(uint32_t x, uint32_t y, const char *s, uint32_t fg, uint32_t bg)
@@ -58,10 +56,10 @@ void fb_puts(uint32_t x, uint32_t y, const char *s, uint32_t fg, uint32_t bg)
     while (*s) {
         if (*s == '\n') {
             cx  = x;
-            y  += 10;
+            y  += FONT_HEIGHT;
         } else {
             fb_putchar(cx, y, *s, fg, bg);
-            cx += 8;
+            cx += FONT_WIDTH;
         }
         s++;
     }
@@ -70,8 +68,8 @@ void fb_puts(uint32_t x, uint32_t y, const char *s, uint32_t fg, uint32_t bg)
 void fb_scroll(uint32_t bg)
 {
     uint8_t *dst = (uint8_t *)fb_addr;
-    uint8_t *src = (uint8_t *)fb_addr + 10 * fb_pitch;
-    uint64_t rows_to_move = fb_height - 10;
+    uint8_t *src = (uint8_t *)fb_addr + FONT_HEIGHT * fb_pitch;
+    uint64_t rows_to_move = fb_height - FONT_HEIGHT;
 
     for (uint64_t row = 0; row < rows_to_move; row++) {
         uint8_t *d = dst + row * fb_pitch;
@@ -94,11 +92,11 @@ void fb_scroll(uint32_t bg)
 
 void fb_newline(uint32_t bg)
 {
-    fb_cursor_x = 0;
-    fb_cursor_y += 10;
-    if (fb_cursor_y + 10 > fb_height) {
+    fb_cursor_x  = 0;
+    fb_cursor_y += FONT_HEIGHT;
+    if (fb_cursor_y + FONT_HEIGHT > fb_height) {
         fb_scroll(bg);
-        fb_cursor_y -= 10;
+        fb_cursor_y -= FONT_HEIGHT;
     }
 }
 
@@ -109,14 +107,14 @@ void fb_putchar_cursor(char c, uint32_t fg, uint32_t bg)
         return;
     }
     if (c == '\b') {
-        if (fb_cursor_x >= 8) {
-            fb_cursor_x -= 8;
+        if (fb_cursor_x >= FONT_WIDTH) {
+            fb_cursor_x -= FONT_WIDTH;
             fb_putchar(fb_cursor_x, fb_cursor_y, ' ', fg, bg);
         }
         return;
     }
     fb_putchar(fb_cursor_x, fb_cursor_y, c, fg, bg);
-    fb_cursor_x += 8;
-    if (fb_cursor_x + 8 > (uint32_t)fb_width)
+    fb_cursor_x += FONT_WIDTH;
+    if (fb_cursor_x + FONT_WIDTH > (uint32_t)fb_width)
         fb_newline(bg);
 }
