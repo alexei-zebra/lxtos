@@ -82,3 +82,17 @@ void kfree(void *ptr)
         }
     }
 }
+
+uint64_t kmalloc_free_size(void) {
+    uint64_t free = 0;
+    block_header_t *cur = heap_head;
+    while (cur) {
+        if (cur->free) free += cur->size;
+        cur = cur->next;
+    }
+    return free;
+}
+
+uint64_t kmalloc_heap_size(void) { 
+    return heap_total; 
+}

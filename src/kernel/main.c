@@ -54,7 +54,9 @@ if (dev && dev->ops && dev->ops->mkfile) {
 
     vfs_node_t *proc = procfs_create();
     vfs_mount("/proc", proc);
- 
+    
+    procfs_register("mem", proc_mem_read);
+    procfs_register("cpuinfo", proc_cpu_read);
  
     if (initramfs_data && initramfs_size > 0)
         initramfs_unpack(initramfs_data, initramfs_size, root);

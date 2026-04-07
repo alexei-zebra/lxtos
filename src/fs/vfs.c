@@ -70,18 +70,16 @@ vfs_node_t *vfs_resolve(const char *path)
     vfs_node_t *cur = vfs_root;
 
     for (int i = 0; i < count; i++) {
-        
-        if (cur->mount) cur = cur->mount;
-
         if (!(cur->flags & VFS_FLAG_DIR)) return NULL;
         if (!cur->ops || !cur->ops->finddir) return NULL;
 
         vfs_node_t *next = cur->ops->finddir(cur, parts[i]);
         if (!next) return NULL;
         cur = next;
+
+        if (cur->mount) cur = cur->mount;
     }
 
-    if (cur->mount) cur = cur->mount;
     return cur;
 }
 

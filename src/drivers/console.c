@@ -5,16 +5,11 @@
 static int64_t console_read(vfs_node_t *node, void *buf, uint64_t offset, uint64_t size)
 {
     (void)node; (void)offset;
-
     char *out = (char *)buf;
     for (uint64_t i = 0; i < size; i++) {
         char c = kb_getchar();
-        if (!c) return i;
-
         out[i] = c;
-
-        if (c == '\n')
-            return i + 1;
+        if (c == '\n') return i + 1;
     }
     return size;
 }

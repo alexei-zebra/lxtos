@@ -1,5 +1,6 @@
 #include <fs/tmpfs.h>
 #include <lib/kmalloc.h>
+#include <lib/kstring.h>
 
 #define TMPFS_MAX_CHILDREN 64
 
@@ -9,30 +10,6 @@ typedef struct tmpfs_node_data {
     vfs_node_t *children[TMPFS_MAX_CHILDREN];
     int         child_count;
 } tmpfs_data_t;
-
-static int kstrlen(const char *s)
-{
-    int n = 0; while (s[n]) n++; return n;
-}
-
-static int kstrcmp(const char *a, const char *b)
-{
-    while (*a && *b && *a == *b) { a++; b++; }
-    return *a - *b;
-}
-
-static void kstrcpy(char *dst, const char *src, int max)
-{
-    int i = 0;
-    while (src[i] && i < max - 1) { dst[i] = src[i]; i++; }
-    dst[i] = '\0';
-}
-
-static void kmemcpy(void *dst, const void *src, uint64_t n)
-{
-    uint8_t *d = dst; const uint8_t *s = src;
-    for (uint64_t i = 0; i < n; i++) d[i] = s[i];
-}
 
 
 static vfs_node_t *tmpfs_alloc_node(const char *name, uint32_t flags);

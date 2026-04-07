@@ -1,18 +1,13 @@
 #include <fs/procfs.h>
 #include <lib/kmalloc.h>
-
-
+#include <lib/kstring.h>
+#include <lib/kitoa.h>
 
 #define PROCFS_MAX_ENTRIES 32
 
-static int kstrlen(const char *s) { int n=0; while(s[n]) n++; return n; }
-static int kstrcmp(const char *a, const char *b) {
-    while (*a && *b && *a == *b) { a++; b++; }
-    return *a - *b;
-}
-static void kstrcpy(char *d, const char *s, int max) {
-    int i=0; while(s[i] && i<max-1){d[i]=s[i];i++;} d[i]=0;
-}
+extern uint8_t kernel_heap[];
+extern uint64_t heap_size;
+
 
 typedef struct {
     procfs_read_fn fn;
@@ -101,4 +96,67 @@ vfs_node_t *procfs_register(const char *name, procfs_read_fn fn)
 
     proc_dir_data.entries[proc_dir_data.count++] = node;
     return node;
+}
+
+int64_t proc_mem_read(void *buf, uint64_t max) 
+{
+    char *out = (char *)buf;
+    char tmp[32];
+    int pos = 0;
+    (void)max;
+
+    const char *h1 = "heap total: ";
+    for (int i = 0; h1[i]; i++) out[pos++] = h1[i];
+    kitoa(kmalloc_heap_size(), tmp);
+    for (int i = 0; tmp[i]; i++) out[pos++] = tmp[i];
+    out[pos++] = '\n';
+
+    const char *h2 = "heap free:  ";
+    for (int i = 0; h2[i]; i++) out[pos++] = h2[i];
+    kitoa(kmalloc_free_size(), tmp);
+    for (int i = 0; tmp[i]; i++) out[pos++] = tmp[i];
+    out[pos++] = '\n';
+
+    return pos;
+}
+
+static void cpuid(uint32_t leaf, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx) 
+{
+    __asm__ volatile("cpuid"
+        : "=a"(*eax), "=b"(*ebx), "=c"(*ecx), "=d"(*edx)
+        : "a"(leaf), "c"(0));
+}
+
+int64_t proc_cpu_read(void *buf, uint64_t max)
+{
+    char *out = (char *)buf;
+    int pos = 0;
+    (void)max;
+    
+    uint32_t eax, ebx, ecx, edx;
+    cpuid(0, &eax, &ebx, &ecx, &edx);
+
+    char vendor[13];
+    for (int i = 0; i < 4; i++) vendor[i]     = (ebx >> (i * 8)) & 0xFF;
+    for (int i = 0; i < 4; i++) vendor[i + 4] = (edx >> (i * 8)) & 0xFF;
+    for (int i = 0; i < 4; i++) vendor[i + 8] = (ecx >> (i * 8)) & 0xFF;
+    vendor[12] = '\0';
+
+    const char *v = "vendor: ";
+    for (int i = 0; v[i]; i++) out[pos++] = v[i];
+    for (int i = 0; vendor[i]; i++) out[pos++] = vendor[i];
+    out[pos++] = '\n';
+    
+    uint32_t brand[12];
+    cpuid(0x80000002, &brand[0],  &brand[1],  &brand[2],  &brand[3]);
+    cpuid(0x80000003, &brand[4],  &brand[5],  &brand[6],  &brand[7]);
+    cpuid(0x80000004, &brand[8],  &brand[9],  &brand[10], &brand[11]);
+
+    const char *m = "model: ";
+    for (int i = 0; m[i]; i++) out[pos++] = m[i];
+    char *brand_str = (char *)brand;
+    for (int i = 0; i < 48 && brand_str[i]; i++) out[pos++] = brand_str[i];
+    out[pos++] = '\n';
+
+    return pos;
 }
