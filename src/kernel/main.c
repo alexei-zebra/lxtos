@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <stddef.h>
-
-#include "limine.h"
+#include <limine.h>
 #include <drivers/framebuffer.h>
 #include <drivers/keyboard.h>
 #include <console/shell.h>
@@ -13,6 +12,19 @@
 #include <drivers/ata.h>
 #include <drivers/console.h>
 #include <console/kprint.h>
+#include <mm/pmm.h>
+#include <mm/vmm.h>
+
+__attribute__((used, section(".requests")))
+static volatile struct limine_framebuffer_request fb_request = {
+    .id = LIMINE_FRAMEBUFFER_REQUEST,
+    .revision = 0
+};
+
+extern uint8_t _binary_build_initramfs_cpio_start[];
+extern uint8_t _binary_build_initramfs_cpio_end[];
+
+pml4_t kernel_pml4;
 
 void draw_banner(void)
 {
@@ -22,51 +34,36 @@ void draw_banner(void)
     kputs("type 'help' for commands\n");
 }
 
-
-extern uint8_t _binary_build_initramfs_cpio_start[];
-extern uint8_t _binary_build_initramfs_cpio_end[];
-
-static uint8_t kernel_heap[4 * 1024 * 1024];
- 
 void vfs_setup(void *initramfs_data, uint64_t initramfs_size)
 {
-    kmalloc_init(kernel_heap, sizeof(kernel_heap));
+    uint64_t heap_phys = pmm_alloc_n(256);
+    void    *heap_virt = (void *)(heap_phys + vmm_hhdm_offset());
+    kmalloc_init(heap_virt, PAGE_SIZE * 256);
+
     vfs_init();
-     
     vfs_node_t *root = tmpfs_create();
     vfs_mount("/", root);
- 
     vfs_mkdir("/dev");
     vfs_mkdir("/proc");
     vfs_mkdir("/etc");
     vfs_mkdir("/bin");
     vfs_mkdir("/tmp");
-    
 
-vfs_node_t *dev = vfs_resolve("/dev");
-
-if (dev && dev->ops && dev->ops->mkfile) {
-    vfs_node_t *node = dev->ops->mkfile(dev, "console");
-    if (node) {
-        console_init_node(node);
+    vfs_node_t *dev = vfs_resolve("/dev");
+    if (dev && dev->ops && dev->ops->mkfile) {
+        vfs_node_t *node = dev->ops->mkfile(dev, "console");
+        if (node)
+            console_init_node(node);
     }
-}
 
     vfs_node_t *proc = procfs_create();
     vfs_mount("/proc", proc);
-    
     procfs_register("mem", proc_mem_read);
     procfs_register("cpuinfo", proc_cpu_read);
- 
+
     if (initramfs_data && initramfs_size > 0)
         initramfs_unpack(initramfs_data, initramfs_size, root);
 }
-
-__attribute__((used, section(".requests")))
-static volatile struct limine_framebuffer_request fb_request = {
-    .id = LIMINE_FRAMEBUFFER_REQUEST,
-    .revision = 0
-};
 
 void _start(void)
 {
@@ -77,15 +74,16 @@ void _start(void)
     fb_init(fb->address, fb->width, fb->height, fb->pitch, fb->bpp);
     fb_fill(COLOR_BG);
 
+    pmm_init();
+    kernel_pml4 = vmm_init();
+
     ata_init();
     kb_init();
     vfs_setup(
         _binary_build_initramfs_cpio_start,
         _binary_build_initramfs_cpio_end - _binary_build_initramfs_cpio_start
     );
-    
     draw_banner();
     shell_run();
-
     for (;;) __asm__ volatile("hlt");
 }
