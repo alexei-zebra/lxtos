@@ -1,7 +1,6 @@
 Small kernel (j4f)
 ```
-rm -rf limine
 make run
 ```
 
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/650a253f-e538-4aee-ad6a-28934c5f2690" />
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/7ddbafe8-069c-4ebd-96f1-ca10e5ee8d23" />
