@@ -1,4 +1,5 @@
 #include <kernel/syscall.h>
+#include <uapi/syscall_nr.h>
 #include <console/kprint.h>
 #include <drivers/keyboard.h>
 #include <drivers/framebuffer.h>
