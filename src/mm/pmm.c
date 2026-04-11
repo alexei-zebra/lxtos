@@ -12,6 +12,7 @@ static volatile struct limine_memmap_request memmap_req = {
 static uint8_t  pmm_bitmap[131072];
 static uint64_t pmm_total;
 static uint64_t pmm_used;
+static uint64_t pmm_total_ram = 0;
 
 static void bitmap_set(uint64_t page)   { pmm_bitmap[page/8] |=  (1 << (page%8)); }
 static void bitmap_clear(uint64_t page) { pmm_bitmap[page/8] &= ~(1 << (page%8)); }
@@ -32,7 +33,16 @@ void pmm_init(void)
 
     for (uint64_t i = 0; i < mm->entry_count; i++) {
         struct limine_memmap_entry *e = mm->entries[i];
+
+        if (e->type == LIMINE_MEMMAP_USABLE ||
+            e->type == LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE ||
+            e->type == LIMINE_MEMMAP_KERNEL_AND_MODULES)
+        {
+            pmm_total_ram += e->length;
+        }
+
         if (e->type != LIMINE_MEMMAP_USABLE) continue;
+
         uint64_t pages = e->length / PAGE_SIZE;
         for (uint64_t p = 0; p < pages; p++) {
             uint64_t idx = (e->base / PAGE_SIZE) + p;
@@ -44,7 +54,7 @@ void pmm_init(void)
     kputs("pmm: ");
     kputdec((pmm_total - pmm_used) * PAGE_SIZE / (1024 * 1024));
     kputs(" MiB free / ");
-    kputdec(pmm_total * PAGE_SIZE / (1024 * 1024));
+    kputdec(pmm_total_ram / (1024 * 1024));
     kputs(" MiB total\n");
 }
 
@@ -81,5 +91,6 @@ uint64_t pmm_alloc_n(uint64_t n)
     return 0;
 }
 
-uint64_t pmm_free_pages(void)  { return pmm_total - pmm_used; }
-uint64_t pmm_total_pages(void) { return pmm_total; }
+uint64_t pmm_free_pages(void)   { return pmm_total - pmm_used; }
+uint64_t pmm_total_pages(void)  { return pmm_total; }
+uint64_t pmm_total_bytes(void)  { return pmm_total_ram; }

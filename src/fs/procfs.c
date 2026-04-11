@@ -2,11 +2,13 @@
 #include <lib/kmalloc.h>
 #include <lib/kstring.h>
 #include <lib/kitoa.h>
+#include <mm/pmm.h>
 
 #define PROCFS_MAX_ENTRIES 32
 
 extern uint8_t kernel_heap[];
 extern uint64_t heap_size;
+extern uint64_t get_total_ram(void);
 
 
 typedef struct {
@@ -98,12 +100,21 @@ vfs_node_t *procfs_register(const char *name, procfs_read_fn fn)
     return node;
 }
 
-int64_t proc_mem_read(void *buf, uint64_t max) 
+
+int64_t proc_mem_read(void *buf, uint64_t max)
 {
     char *out = (char *)buf;
     char tmp[32];
     int pos = 0;
     (void)max;
+
+	
+    const char *h0 = "mem total:  ";
+    for (int i = 0; h0[i]; i++) out[pos++] = h0[i];
+    kitoa(pmm_total_bytes() / 1024 / 1024, tmp);
+    for (int i = 0; tmp[i]; i++) out[pos++] = tmp[i];
+    const char *mb = " MB\n";
+    for (int i = 0; mb[i]; i++) out[pos++] = mb[i];
 
     const char *h1 = "heap total: ";
     for (int i = 0; h1[i]; i++) out[pos++] = h1[i];
@@ -119,7 +130,6 @@ int64_t proc_mem_read(void *buf, uint64_t max)
 
     return pos;
 }
-
 static void cpuid(uint32_t leaf, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx) 
 {
     __asm__ volatile("cpuid"
