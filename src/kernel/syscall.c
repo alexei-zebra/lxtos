@@ -71,12 +71,16 @@ uint64_t syscall_dispatch(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3)
         return (uint64_t)vnode_read(node, (void *)a2, 0, a3);
     }
     case SYS_WRITE: {
-        vfs_node_t *node = vfs_resolve((const char *)a1);
+        const char *path = (const char *)a1;
+        const void *data = (const void *)a2;
+        uint64_t    size = a3;
+        vfs_node_t *node = vfs_resolve(path);
         if (!node) {
-            node = vfs_mkfile((const char *)a1);
+            node = vfs_mkfile(path);
             if (!node) return (uint64_t)-1;
         }
-        return (uint64_t)vnode_write(node, (void *)a2, 0, a3);
+        if (node->flags & VFS_FLAG_DIR) return (uint64_t)-1;
+        return (uint64_t)vnode_write(node, data, 0, size);
     }
     default:
         return (uint64_t)-1;

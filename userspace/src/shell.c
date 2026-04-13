@@ -37,8 +37,8 @@ static void read_hostname(const char *path, char *result)
 {
     static char buf[256];
     int64_t n = sys_read("/etc/hostname", buf, sizeof(buf) - 1);
-    if (buf[n-1] == '\n') {buf[n-1] = 0;}
-    else { buf[n] = 0; }
+    if (n > 0 && buf[n-1] == '\n') buf[n-1] = 0;
+    else buf[n] = 0;
     u_strcpy(result, buf, 256);
 }
 
@@ -122,30 +122,40 @@ static void cmd_pwd(void)
 static void cmd_help(void)
 {
     u_puts("\ncommands:\n");
-    u_puts("  ls [path]           - list directory\n");
-    u_puts("  cd [path]           - change directory\n");
-    u_puts("  pwd                 - print working directory\n");
-    u_puts("  cat <file>          - print file\n");
-    u_puts("  mkdir <path>        - create directory\n");
-    u_puts("  touch <file>        - create file\n");
-    u_puts("  rm <file>           - remove file\n");
-    u_puts("  write <file> <text> - write text to file\n");
-    u_puts("  echo <text>         - print text\n");
-    u_puts("  clear               - clear screen\n");
-    u_puts("  exit                - halt\n");
+    u_puts("  ls [path]\n");
+    u_puts("  cd [path]\n");
+    u_puts("  pwd\n");
+    u_puts("  cat <file>\n");
+    u_puts("  mkdir <path>\n");
+    u_puts("  touch <file>\n");
+    u_puts("  rm <file>\n");
+    u_puts("  write <file> <text>\n");
+    u_puts("  echo <text>\n");
+    u_puts("  clear\n");
+    u_puts("  exit\n");
 }
 
 static int parse(char *line, char *argv[], int max)
 {
     int argc = 0;
     char *p = line;
+
     while (*p && argc < max) {
         while (*p == ' ') p++;
         if (!*p) break;
-        argv[argc++] = p;
-        while (*p && *p != ' ') p++;
-        if (*p) { *p = 0; p++; }
+
+        if (*p == '"') {
+            p++;
+            argv[argc++] = p;
+            while (*p && *p != '"') p++;
+            if (*p) { *p = 0; p++; }
+        } else {
+            argv[argc++] = p;
+            while (*p && *p != ' ') p++;
+            if (*p) { *p = 0; p++; }
+        }
     }
+
     return argc;
 }
 
@@ -183,8 +193,40 @@ void user_shell(void)
         else if (!u_strcmp(argv[0], "mkdir")) cmd_mkdir(argc > 1 ? argv[1] : 0);
         else if (!u_strcmp(argv[0], "touch")) cmd_touch(argc > 1 ? argv[1] : 0);
         else if (!u_strcmp(argv[0], "rm"))    cmd_rm(argc > 1 ? argv[1] : 0);
-        else if (!u_strcmp(argv[0], "echo"))  { u_puts("\n"); u_puts(argc > 1 ? argv[1] : ""); u_puts("\n"); }
-        else if (!u_strcmp(argv[0], "write")) cmd_write(argc > 1 ? argv[1] : 0, argc > 2 ? argv[2] : 0);
-        else { u_puts("\nunknown: "); u_puts(argv[0]); u_puts("\n"); }
+        else if (!u_strcmp(argv[0], "echo")) {
+            u_puts("\n");
+            for (int i = 1; i < argc; i++) {
+                u_puts(argv[i]);
+                if (i != argc - 1) u_puts(" ");
+            }
+            u_puts("\n");
+        }
+        else if (!u_strcmp(argv[0], "write")) {
+            if (argc < 3) {
+                cmd_write(0, 0);
+            } else {
+                char buf[512];
+                int pos = 0;
+        
+                for (int i = 2; i < argc; i++) {
+                    int j = 0;
+                    while (argv[i][j] && pos < (int)sizeof(buf) - 1) {
+                        buf[pos++] = argv[i][j++];
+                    }
+                    if (i != argc - 1 && pos < (int)sizeof(buf) - 1) {
+                        buf[pos++] = ' ';
+                    }
+                }
+        
+                buf[pos] = 0;
+        
+                cmd_write(argv[1], buf);
+            }
+        }
+        else {
+            u_puts("\nunknown: ");
+            u_puts(argv[0]);
+            u_puts("\n");
+        }
     }
 }
