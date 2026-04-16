@@ -1,27 +1,8 @@
+#import "base.typ": *
+#show: base-styles
+
+
 #set document(title: "Nocturne OS Documentation")
-
-
-#set page(
-  margin: (x: 4em, y: 4em),
-)
-
-#set heading(numbering: "1.1")
-#show heading.where(level: 1): set align(center)
-#show heading.where(level: 1): set block(below: 32pt)
-#show heading.where(level: 2): set block(below: 16pt)
-#show heading.where(level: 2): set block(below: 16pt)
-
-#show raw.where(block: false): it => (
-  " "
-    + box(
-      fill: rgb("#0001"),
-      stroke: 0.5pt + rgb("#0001"),
-      outset: (y: 3pt, x: 4pt),
-      radius: 2pt,
-      it,
-    )
-    + " "
-)
 
 
 #align(center, title())
@@ -688,14 +669,13 @@ Standard string/memory ops, reimplemented freestanding. No libc dependency.
   "kstrcpy", "void kstrcpy(char *dst, const char *src, int max)", "Bounded copy, always null-terminates",
   "kmemcpy", "void kmemcpy(void *dst, const void *src, uint64_t n)", "Byte copy",
   "kmemset", "void kmemset(void *dst, uint8_t val, uint64_t n)", "Byte fill",
-  "memset", "void *memset(void *dst, int v, uint64_t n)", "C-compatible alias, returns dst",
 )
 
 *`kitoa` / `kitoa_hex` :*
 #table(
   columns: 3,
   "Function", "Signature", "Description",
-  "kitoa", "void kitoa(uint32_t n, char *buf)", "uint32_t → decimal string",
+  "kitoa", "void kitoa(uint32_t val, char *buf)", "uint32_t → decimal string",
   "kitoa_hex",
   "void kitoa_hex(uint64_t val, char *buf)",
   "uint64_t → 16-char uppercase hex, no 0x prefix; buf must be ≥ 17 bytes",

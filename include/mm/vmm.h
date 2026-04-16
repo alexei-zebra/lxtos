@@ -12,9 +12,21 @@
 
 typedef uint64_t *pml4_t;
 
-pml4_t   vmm_new_space(void);
-void     vmm_map(pml4_t pml4, uint64_t virt, uint64_t phys, uint64_t flags);
-void     vmm_unmap(pml4_t pml4, uint64_t virt);
-void     vmm_switch(pml4_t pml4);
+
+// Get the offset of the HHDM
 uint64_t vmm_hhdm_offset(void);
-pml4_t   vmm_init(void);
+
+// Map a virtual address to a physical address
+void vmm_map(pml4_t pml4, uint64_t virt, uint64_t phys, uint64_t flags);
+
+// Unmap a virtual address
+void vmm_unmap(pml4_t pml4, uint64_t virt);
+
+// Switch to a new page table
+void vmm_switch(pml4_t pml4);
+
+// Create a new address space
+pml4_t vmm_new_space(void);
+
+// Initialize the virtual memory manager
+pml4_t vmm_init(void);
