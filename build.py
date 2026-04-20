@@ -19,60 +19,46 @@ CFLAGS_LIST = [
     "-mno-mmx",
     "-mno-sse",
     "-mno-sse2",
-    "-mcmodel=kernel",
     "-nostdlib",
     "-Wall",
     "-Wextra",
-    "-O2",
-    "-Iinclude",
+    "-O2"
 ]
-
-ASFLAGS_LIST = ["-f", "elf64"]
-
 LDFLAGS_LIST = [
     "-m", "elf_x86_64",
     "-nostdlib",
     "-static",
-    "-T", "linker.ld",
-    "-z", "max-page-size=0x1000",
+    "-T", "linker.ld"
+]
+ASFLAGS_LIST = [
+    "-f", "elf64"
 ]
 
-USER_CFLAGS_LIST = [
-    "-m64",
-    "-ffreestanding",
-    "-fno-stack-protector",
-    "-fno-pic",
-    "-fno-pie",
-    "-mno-red-zone",
-    "-mno-mmx",
-    "-mno-sse",
-    "-mno-sse2",
-    "-nostdlib",
-    "-Wall",
-    "-Wextra",
-    "-O2",
-    "-Iuserspace/include",
-    "-Iinclude",
-]
+KERN_CFLAGS_LIST = CFLAGS_LIST + ["-Iinclude", "-mcmodel=kernel"]
+KERN_LDFLAGS_LIST = LDFLAGS_LIST + ["-z", "max-page-size=0x1000"]
+KERN_ASFLAGS_LIST = ASFLAGS_LIST
 
-USER_LDFLAGS_LIST = [
-    "-m", "elf_x86_64",
-    "-nostdlib",
-    "-static",
-    "-T", "userspace/link.ld",
-]
+USER_CFLAGS_LIST = CFLAGS_LIST + ["-Iuserspace/include", "-Iinclude"]
+USER_LDFLAGS_LIST = LDFLAGS_LIST
+USER_ASFLAGS_LIST = ASFLAGS_LIST
 
-CFLAGS = ' '.join(CFLAGS_LIST)
-ASFLAGS = ' '.join(ASFLAGS_LIST)
-LDFLAGS = ' '.join(LDFLAGS_LIST)
+KERN_CFLAGS = ' '.join(KERN_CFLAGS_LIST)
+KERN_ASFLAGS = ' '.join(KERN_ASFLAGS_LIST)
+KERN_LDFLAGS = ' '.join(KERN_LDFLAGS_LIST)
+
 USER_CFLAGS = ' '.join(USER_CFLAGS_LIST)
 USER_LDFLAGS = ' '.join(USER_LDFLAGS_LIST)
+USER_ASFLAGS = ' '.join(USER_ASFLAGS_LIST)
 
+OS_NAME = "NocturneOS"
 KERNEL = "kernel.elf"
-ISO = "NocturneOS.iso"
+ISO = f"{OS_NAME}.iso"
 DISK_IMG = "disk.img"
+
 LIMINE_REPO = "https://codeberg.org/Limine/Limine.git"
+LIMINE_REPO_ARG = "--branch=v11.x-binary --depth=1"
 LIMINE_DIR = "limine"
+
 
 USER_COMMON = [
     "userspace/src/crt0.asm",
@@ -111,7 +97,7 @@ def build_user_binary(out_path: str, sources: list[str]):
         if src.endswith(".c"):
             sh(f"{CC} {USER_CFLAGS} -c {src} -o {obj}")
         elif src.endswith(".asm"):
-            sh(f"{AS} {ASFLAGS} {src} -o {obj}")
+            sh(f"{AS} {USER_ASFLAGS} {src} -o {obj}")
     sh(f"{LD} {USER_LDFLAGS} -o {out_path} {' '.join(objs)}")
 
 
@@ -132,7 +118,7 @@ def build_initramfs():
     os.makedirs("initramfs/bin", exist_ok=True)
     os.makedirs("initramfs/etc", exist_ok=True)
     with open("initramfs/etc/osname", "w") as f:
-        f.write("NocturneOS\n")
+        f.write(f"{OS_NAME}\n")
     build_userspace()
     sh("cd initramfs && find . | cpio -o -H newc > ../build/initramfs.cpio")
     sh(f"{LD} -r -b binary build/initramfs.cpio -o build/initramfs_bin.o")
@@ -151,7 +137,7 @@ def get_sources():
     return jobs
 
 
-def compile_sources():
+def compile_kernel_sources():
     jobs = get_sources()
     obj_files = []
     for kind, src, obj in jobs:
@@ -160,17 +146,17 @@ def compile_sources():
         if not newer(src, obj):
             continue
         if kind == "c":
-            sh(f"{CC} {CFLAGS} -c {src} -o {obj}")
+            sh(f"{CC} {KERN_CFLAGS} -c {src} -o {obj}")
         elif kind == "asm":
-            sh(f"{AS} {ASFLAGS} {src} -o {obj}")
+            sh(f"{AS} {KERN_ASFLAGS} {src} -o {obj}")
     return obj_files
 
 
 def build_kernel():
     build_initramfs()
-    obj_files = compile_sources()
+    obj_files = compile_kernel_sources()
     obj_files.append("build/initramfs_bin.o")
-    sh(f"{LD} {LDFLAGS} -o {KERNEL} {' '.join(obj_files)}")
+    sh(f"{LD} {KERN_LDFLAGS} -o {KERNEL} {' '.join(obj_files)}")
 
 
 def clone_limine():
@@ -213,12 +199,12 @@ def populate_disk():
     if not os.path.exists(DISK_IMG):
         sh(f"dd if=/dev/zero of={DISK_IMG} bs=1M count=64")
         sh(f"mkfs.ext2 -b 1024 {DISK_IMG}")
-    sh("mkdir -p /tmp/NocturneOS_mnt")
-    sh(f"sudo mount -o loop {DISK_IMG} /tmp/NocturneOS_mnt")
-    sh("sudo mkdir -p /tmp/NocturneOS_mnt/etc")
-    sh("echo 'hello from ext2' | sudo tee /tmp/NocturneOS_mnt/etc/hello.txt")
-    sh("echo 'NocturneOS' | sudo tee /tmp/NocturneOS_mnt/etc/hostname")
-    sh("sudo umount /tmp/NocturneOS_mnt")
+    sh(f"mkdir -p /tmp/{OS_NAME}_mnt")
+    sh(f"sudo mount -o loop {DISK_IMG} /tmp/{OS_NAME}_mnt")
+    sh(f"sudo mkdir -p /tmp/{OS_NAME}_mnt/etc")
+    sh(f"echo 'hello from ext2' | sudo tee /tmp/{OS_NAME}_mnt/etc/hello.txt")
+    sh(f"echo '{OS_NAME}' | sudo tee /tmp/{OS_NAME}_mnt/etc/hostname")
+    sh(f"sudo umount /tmp/{OS_NAME}_mnt")
 
 
 def clean():
