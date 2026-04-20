@@ -255,7 +255,8 @@ if __name__ == "__main__":
     )
 
     parser.add_argument("-b", "--build", choices=["all", "a", "kernel", "k", "iso", "i"],
-                        nargs="?", const="all", metavar="METHOD", help="METHOD in [all, iso]")
+                        nargs="?", const="all", metavar="METHOD",
+                        help="METHOD in [all/a, kernel/k, iso/i]\n default: all")
     parser.add_argument("-r", "--run", action="store_true", help="run a vm with OS img")
 
     args = parser.parse_args()
