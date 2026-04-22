@@ -108,7 +108,7 @@ void _start(void)
     );
     mount_ext2();
 
-    kputs_col("NocturneOS kernel\n", COLOR_PROMPT);
+    kputs_col("Silex kernel\n", COLOR_PROMPT);
 
     if (elf_exec("/bin/shell") != 0) {
         kputs("FATAL: cannot exec /bin/shell\n");

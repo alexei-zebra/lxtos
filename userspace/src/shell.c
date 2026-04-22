@@ -164,7 +164,7 @@ void main(void)
 {
     static char input[MAX_INPUT];
 
-    u_puts("\nNocturneOS userspace shell!!!\n");
+    u_puts("\nSilex userspace shell!!!\n");
 
     print_ascii();
 

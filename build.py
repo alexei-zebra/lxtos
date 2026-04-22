@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build system for NocturneOS."""
+"""Build system for Silex."""
 
 import glob
 import os
@@ -51,7 +51,7 @@ USER_CFLAGS = ' '.join(USER_CFLAGS_LIST)
 USER_LDFLAGS = ' '.join(USER_LDFLAGS_LIST)
 USER_ASFLAGS = ' '.join(USER_ASFLAGS_LIST)
 
-OS_NAME = "NocturneOS"
+OS_NAME = "Silex"
 HOST_NAME = "hostpc"
 
 KERNEL = "kernel.elf"
