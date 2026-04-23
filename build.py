@@ -130,7 +130,7 @@ def build_initramfs():
     with open("build/initramfs/etc/hostname", "w") as f:
         f.write(f"{HOST_NAME}\n")
     os.makedirs("build/initramfs/tmp", exist_ok=True)
-    sh("cp data/ascii.txt build/initramfs/tmp/")
+    sh("cp data/logo/silex_kernel.txt build/initramfs/tmp/")
 
 
 def initramfs_to_binary():

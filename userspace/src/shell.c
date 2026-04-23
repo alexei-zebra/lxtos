@@ -26,7 +26,7 @@ static void resolve_path(const char *input, char *result)
 static void print_ascii(void)
 {
     static char buf[4096];
-    int64_t n = sys_read("/tmp/ascii.txt", buf, sizeof(buf)-1);
+    int64_t n = sys_read("/tmp/silex_kernel.txt", buf, sizeof(buf)-1);
     if (n > 0) {
         buf[n] = 0;
         u_puts(buf);
