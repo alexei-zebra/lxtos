@@ -80,13 +80,13 @@ static inline int64_t sys_write(const char *path, const void *buf, uint64_t sz)
     return (int64_t)ret;
 }
 
-static inline int64_t sys_exec(const char *path)
+static inline int64_t sys_exec(const char *path, const char **argv)
 {
     uint64_t ret;
     __asm__ volatile(
         "mov $12, %%rax; int $0x80"
         : "=a"(ret)
-        : "D"((uint64_t)path)
+        : "D"((uint64_t)path), "S"((uint64_t)argv)
         : "memory"
     );
     return (int64_t)ret;

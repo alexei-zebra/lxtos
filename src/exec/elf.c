@@ -65,8 +65,20 @@ int elf_load(pml4_t pml4, const uint8_t *data,
 #define USER_STACK_TOP  0x7FFFFFFFE000ULL
 #define USER_STACK_PAGES 16
 
-int elf_exec(const char *path)
+int elf_exec(const char *path) {
+    const char *argv[] = { path, NULL };
+    return elf_exec_argv(path, argv);
+}
+
+int elf_exec_argv(const char *path, const char **uargv)
 {
+    int argc = 0;
+    if (uargv) {
+        while (uargv[argc]) argc++;
+    }
+    const char *fallback[] = { path, NULL };
+    if (argc == 0) { uargv = fallback; argc = 1; }
+
     vfs_node_t *node = vfs_resolve(path);
     if (!node || (node->flags & VFS_FLAG_DIR)) {
         kputs("elf_exec: not found: "); kputs(path); kputs("\n");
@@ -77,30 +89,61 @@ int elf_exec(const char *path)
     if (fsize == 0) { kputs("elf_exec: empty file\n"); return -1; }
 
     uint8_t *buf = kmalloc(fsize);
-    if (!buf) { kputs("elf_exec: oom for buf\n"); return -1; }
+    if (!buf) { kputs("elf_exec: oom\n"); return -1; }
     vnode_read(node, buf, 0, fsize);
 
     pml4_t pml4 = vmm_new_space();
+    uint64_t hhdm = vmm_hhdm_offset();
+    uint64_t stack_bottom = USER_STACK_TOP - (uint64_t)USER_STACK_PAGES * PAGE_SIZE;
+    uint64_t stack_phys[USER_STACK_PAGES];
 
     for (uint64_t pg = 0; pg < USER_STACK_PAGES; pg++) {
         uint64_t phys = pmm_alloc();
         if (!phys) { kfree(buf); return -1; }
-        uint64_t va = USER_STACK_TOP - (uint64_t)USER_STACK_PAGES * PAGE_SIZE
-                      + pg * PAGE_SIZE;
-        vmm_map(pml4, va, phys, PAGE_PRESENT | PAGE_WRITE | PAGE_USER);
-        kmemset((void *)(phys + vmm_hhdm_offset()), 0, PAGE_SIZE);
+        vmm_map(pml4, stack_bottom + pg * PAGE_SIZE, phys,
+                PAGE_PRESENT | PAGE_WRITE | PAGE_USER);
+        kmemset((void *)(phys + hhdm), 0, PAGE_SIZE);
+        stack_phys[pg] = phys;
     }
 
-	// load segments
     uint64_t entry = 0;
-    if (elf_load(pml4, buf, fsize, &entry) != 0) {
-        kfree(buf);
-        return -1;
-    }
+    if (elf_load(pml4, buf, fsize, &entry) != 0) { kfree(buf); return -1; }
     kfree(buf);
 
-	// switch cr3 and jump
+    #define VIRT_TO_KERN(va) \
+        ((void *)(stack_phys[((va) - stack_bottom) / PAGE_SIZE] + hhdm \
+                  + ((va) - stack_bottom) % PAGE_SIZE))
+
+    uint64_t sp = USER_STACK_TOP;
+    uint64_t arg_ptrs[16];
+
+    
+    for (int i = argc - 1; i >= 0; i--) {
+        int len = kstrlen(uargv[i]) + 1;
+        sp -= len;
+        kmemcpy(VIRT_TO_KERN(sp), uargv[i], len);
+        arg_ptrs[i] = sp;
+    }
+
+    sp &= ~7ULL;
+
+    // NULL
+    sp -= 8;
+    *(uint64_t *)VIRT_TO_KERN(sp) = 0;
+
+    // argv[]
+    for (int i = argc - 1; i >= 0; i--) {
+        sp -= 8;
+        *(uint64_t *)VIRT_TO_KERN(sp) = arg_ptrs[i];
+    }
+
+    // argc
+    sp -= 8;
+    *(uint64_t *)VIRT_TO_KERN(sp) = (uint64_t)argc;
+
+    #undef VIRT_TO_KERN
+
     vmm_switch(pml4);
-    jump_usermode(entry, USER_STACK_TOP);
+    jump_usermode(entry, sp);
     return 0;
 }

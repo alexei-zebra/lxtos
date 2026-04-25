@@ -84,8 +84,11 @@ uint64_t syscall_dispatch(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3)
         if (node->flags & VFS_FLAG_DIR) return (uint64_t)-1;
         return (uint64_t)vnode_write(node, data, 0, size);
     }
-    case SYS_EXEC:
-        return (uint64_t)elf_exec((const char *)a1);
+    case SYS_EXEC: {
+    const char *path     = (const char *)a1;
+    const char **uargv   = (const char **)a2;
+    return (uint64_t)elf_exec_argv(path, uargv);
+    }
     case SYS_FSIZE: {
         vfs_node_t *node = vfs_resolve((const char *)a1);
         if (!node || (node->flags & VFS_FLAG_DIR)) return (uint64_t)-1;

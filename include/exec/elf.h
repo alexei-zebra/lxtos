@@ -38,7 +38,8 @@ typedef struct __attribute__((packed)) {
     uint64_t p_align;
 } elf64_phdr_t;
 
-int      elf_load(pml4_t pml4, const uint8_t *data,
+int elf_load(pml4_t pml4, const uint8_t *data,
                   uint64_t size, uint64_t *out_entry);
 
-int      elf_exec(const char *path);
+int elf_exec(const char *path);
+int elf_exec_argv(const char *path, const char **uargv);

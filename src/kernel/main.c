@@ -30,6 +30,16 @@ extern uint8_t _binary_build_initramfs_cpio_end[];
 
 pml4_t kernel_pml4;
 
+static void print_ascii(void)
+{
+    static char buf[4096];
+    int64_t n = vfs_read("/tmp/silex_kernel.txt", buf, 0, sizeof(buf)-1);
+    if (n > 0) {
+        buf[n] = 0;
+        kputs(buf);
+    }
+}
+
 void vfs_setup(void *initramfs_data, uint64_t initramfs_size)
 {
     uint64_t heap_phys = pmm_alloc_n(256);
@@ -109,6 +119,7 @@ void _start(void)
     mount_ext2();
 
     kputs_col("Silex kernel\n", COLOR_PROMPT);
+    print_ascii();
 
     if (elf_exec("/bin/shell") != 0) {
         kputs("FATAL: cannot exec /bin/shell\n");

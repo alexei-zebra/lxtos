@@ -113,14 +113,20 @@ def build_user_binary(out_path: str, sources: list[str]):
 
 def build_userspace():
     os.makedirs("build/initramfs/bin", exist_ok=True)
-    build_user_binary(
-        "build/initramfs/bin/shell",
-        USER_COMMON + ["userspace/src/shell.c"],
-    )
-    build_user_binary(
-        "build/initramfs/bin/hello",
-        USER_COMMON + ["userspace/src/hello.c"],
-    )
+    bin_dir = "userspace/src/bin"
+    if not os.path.exists(bin_dir):
+        return
+    for app in os.listdir(bin_dir):
+        app_path = os.path.join(bin_dir, app)
+        if not os.path.isdir(app_path):
+            continue
+        sources = USER_COMMON.copy()
+        for ext in ("*.c", "*.asm"):
+            sources += glob.glob(os.path.join(app_path, "**", ext), recursive=True)
+        if not sources:
+            continue
+        out = f"build/initramfs/bin/{app}"
+        build_user_binary(out, sources)
 
 
 def build_initramfs():
