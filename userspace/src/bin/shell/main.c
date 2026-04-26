@@ -125,14 +125,6 @@ void main(void)
         else if (!u_strcmp(argv[0], "help"))  cmd_help();
         else if (!u_strcmp(argv[0], "pwd"))   cmd_pwd();
         else if (!u_strcmp(argv[0], "cd"))    cmd_cd(argc > 1 ? argv[1] : 0);
-        else if (!u_strcmp(argv[0], "echo")) {
-            u_puts("\n");
-            for (int i = 1; i < argc; i++) {
-                u_puts(argv[i]);
-                if (i != argc - 1) u_puts(" ");
-            }
-            u_puts("\n");
-        }
         else {
             try_exec(argv[0], argv, argc);
         }
