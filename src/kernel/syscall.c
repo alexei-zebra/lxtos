@@ -6,6 +6,10 @@
 #include <lib/kstring.h>
 #include <fs/vfs.h>
 #include <exec/elf.h>
+#include <fs/procfs.h>
+#include <fs/tmpfs.h>
+#include <fs/ext2.h>
+#include <drivers/ata.h>
 
 static char kernel_cwd[256] = "/";
 
@@ -110,20 +114,40 @@ uint64_t syscall_dispatch(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3)
         return 0;
     }
     case SYS_MOUNT: {
-         const char *source     = (const char *)a1;
-         const char *mountpoint = (const char *)a2;
-     
-         vfs_node_t *target = vfs_resolve(mountpoint);
-         if (!target || !(target->flags & VFS_FLAG_DIR))
-             return (uint64_t)-1;
-     
-         vfs_node_t *src_node = vfs_resolve(source);
-         if (!src_node)
-             return (uint64_t)-1;
-     
-         int r = vfs_mount(mountpoint, src_node);
-         return (uint64_t)(r == 0 ? 0 : -1);
-    } 
+        const char *source     = (const char *)a1;
+        const char *mountpoint = (const char *)a2;
+        const char *fstype     = (const char *)a3; // proc, tmpfs, ext2..
+
+        vfs_node_t *target = vfs_resolve(mountpoint);
+        if (!target || !(target->flags & VFS_FLAG_DIR))
+            return (uint64_t)-1;
+
+        vfs_node_t *fs = NULL;
+
+        if (kstrcmp(fstype, "proc") == 0) {
+            fs = procfs_create();
+            if (!fs) return (uint64_t)-1;
+            procfs_register("mem",     proc_mem_read);
+            procfs_register("cpuinfo", proc_cpu_read);
+
+        } else if (kstrcmp(fstype, "tmpfs") == 0) {
+            fs = tmpfs_create();
+            if (!fs) return (uint64_t)-1;
+
+        } else if (kstrcmp(fstype, "ext2") == 0) {
+            int bus = source[0] - '0';
+            int drv = source[2] - '0';
+            fs = ext2_mount(bus, drv);
+            if (!fs) return (uint64_t)-1;
+
+        } else {
+            fs = vfs_resolve(source);
+            if (!fs) return (uint64_t)-1;
+        }
+
+        int r = vfs_mount(mountpoint, fs);
+        return r == 0 ? 0 : (uint64_t)-1;
+    }   
     case SYS_UMOUNT: {
         const char *mountpoint = (const char *)a1;
 

@@ -135,6 +135,11 @@ def build_initramfs():
         f.write(f"{OS_NAME}\n")
     with open("build/initramfs/etc/hostname", "w") as f:
         f.write(f"{HOST_NAME}\n")
+
+    import shutil
+    if os.path.exists("data/motd"):
+        shutil.copy("data/motd", "build/initramfs/etc/motd")
+
     os.makedirs("build/initramfs/tmp", exist_ok=True)
     sh("cp data/logo/silex_kernel.txt build/initramfs/tmp/")
 
