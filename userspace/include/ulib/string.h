@@ -1,4 +1,5 @@
 #pragma once
+//! depricated
 
 int  u_strlen(const char *s);
 int  u_strcmp(const char *a, const char *b);
