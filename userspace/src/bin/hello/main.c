@@ -1,8 +1,7 @@
-#include <ulib/io.h>
-#include <ulib/syscall.h>
+#include <libc/stdio.h>
 
 int main(void)
 {
-    u_puts("\nHello from ELF binary!\n");
+    puts("Hello from ELF binary!\n");
     return 0;
 }

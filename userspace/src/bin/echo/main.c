@@ -1,13 +1,14 @@
-#include <ulib/io.h>
-#include <ulib/syscall.h>
+#include <libc/stdlib.h>
+#include <libc/stdio.h>
 
 void main(int argc, char **argv)
 {
-    u_puts("\n");
-    for (int i = 1; i < argc; i++) {
-        u_puts(argv[i]);
-        if (i != argc-1) u_puts(" ");
+    printf("");
+    for (int i = 1; i < argc; i++)
+    {
+        printf("%s", argv[i]);
+        if (i != argc-1) printf(" ");
     }
-    u_puts("\n");
-    sys_exit();
+    printf("");
+    exit(0);
 }

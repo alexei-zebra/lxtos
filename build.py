@@ -68,6 +68,9 @@ USER_COMMON = [
     "userspace/src/crt0.asm",
     "userspace/src/ulib/io.c",
     "userspace/src/ulib/string.c",
+    "userspace/src/libc/string.c",
+    "userspace/src/libc/stdio.c",
+    "userspace/src/libc/stdlib.c",
 ]
 
 
@@ -225,7 +228,7 @@ def run_qemu():
     create_disk()
     sh(f"qemu-system-x86_64 -cdrom {ISO}\
         -drive file={DISK_IMG},format=raw,if=ide,index=1\
-        -m 128M -vga std -no-reboot -no-shutdown")
+        -m 128M -vga std -no-reboot -no-shutdown -enable-kvm")
 
 
 def populate_disk():

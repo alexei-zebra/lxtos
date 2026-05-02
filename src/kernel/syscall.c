@@ -127,9 +127,14 @@ uint64_t syscall_dispatch(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3)
         if (kstrcmp(fstype, "proc") == 0) {
             fs = procfs_create();
             if (!fs) return (uint64_t)-1;
-            procfs_register("mem",     proc_mem_read);
-            procfs_register("cpuinfo", proc_cpu_read);
-
+            procfs_register("mem_total",  proc_mem_total_read);
+            procfs_register("mem_free", proc_mem_free_read);
+            procfs_register("heap_total", proc_heap_total_read);
+            procfs_register("heap_free",  proc_heap_free_read);
+            
+            procfs_register("cpu_vendor", proc_cpu_vendor_read);
+            procfs_register("cpu_model",  proc_cpu_model_read);
+            
         } else if (kstrcmp(fstype, "tmpfs") == 0) {
             fs = tmpfs_create();
             if (!fs) return (uint64_t)-1;

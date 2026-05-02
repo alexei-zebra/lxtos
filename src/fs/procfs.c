@@ -136,9 +136,9 @@ static void cpuid(uint32_t leaf, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, ui
         : "a"(leaf), "c"(0));
 }
 
-int64_t proc_cpu_read(void *buf, uint64_t max)
+int64_t proc_cpu_vendor_read(void *buf, uint64_t max)
 {
-    char *out = (char *)buf;
+    char *out = buf;
     int pos = 0;
     (void)max;
 
@@ -149,23 +149,100 @@ int64_t proc_cpu_read(void *buf, uint64_t max)
     for (int i = 0; i < 4; i++) vendor[i]     = (ebx >> (i * 8)) & 0xFF;
     for (int i = 0; i < 4; i++) vendor[i + 4] = (edx >> (i * 8)) & 0xFF;
     for (int i = 0; i < 4; i++) vendor[i + 8] = (ecx >> (i * 8)) & 0xFF;
-    vendor[12] = '\0';
+    vendor[12] = 0;
 
-    const char *v = "vendor: ";
-    for (int i = 0; v[i]; i++) out[pos++] = v[i];
     for (int i = 0; vendor[i]; i++) out[pos++] = vendor[i];
     out[pos++] = '\n';
 
+    return pos;
+}
+
+int64_t proc_cpu_model_read(void *buf, uint64_t max)
+{
+    char *out = buf;
+    int pos = 0;
+    (void)max;
+
     uint32_t brand[12];
+
     cpuid(0x80000002, &brand[0],  &brand[1],  &brand[2],  &brand[3]);
     cpuid(0x80000003, &brand[4],  &brand[5],  &brand[6],  &brand[7]);
     cpuid(0x80000004, &brand[8],  &brand[9],  &brand[10], &brand[11]);
 
-    const char *m = "model: ";
-    for (int i = 0; m[i]; i++) out[pos++] = m[i];
-    char *brand_str = (char *)brand;
-    for (int i = 0; i < 48 && brand_str[i]; i++) out[pos++] = brand_str[i];
+    char *str = (char *)brand;
+
+    for (int i = 0; i < 48 && str[i]; i++)
+        out[pos++] = str[i];
+
     out[pos++] = '\n';
+
+    return pos;
+}
+
+int64_t proc_mem_total_read(void *buf, uint64_t max)
+{
+    char *out = buf;
+    char tmp[32];
+    int pos = 0;
+    (void)max;
+
+    kitoa(pmm_total_bytes() / 1024 / 1024, tmp);
+
+    for (int i = 0; tmp[i]; i++) out[pos++] = tmp[i];
+    const char *mb = " MB\n";
+    for (int i = 0; mb[i]; i++) out[pos++] = mb[i];
+
+    return pos;
+}
+
+int64_t proc_heap_total_read(void *buf, uint64_t max)
+{
+    char *out = buf;
+    char tmp[32];
+    int pos = 0;
+    (void)max;
+
+    kitoa(kmalloc_heap_size(), tmp);
+
+    for (int i = 0; tmp[i]; i++) out[pos++] = tmp[i];
+    out[pos++] = '\n';
+
+    return pos;
+}
+
+int64_t proc_heap_free_read(void *buf, uint64_t max)
+{
+    char *out = buf;
+    char tmp[32];
+    int pos = 0;
+    (void)max;
+
+    kitoa(kmalloc_free_size(), tmp);
+
+    for (int i = 0; tmp[i]; i++) out[pos++] = tmp[i];
+    out[pos++] = '\n';
+
+    return pos;
+}
+
+int64_t proc_mem_free_read(void *buf, uint64_t max)
+{
+    char *out = buf;
+    char tmp[32];
+    int pos = 0;
+    (void)max;
+
+    uint64_t free_mb = pmm_free_pages() * PAGE_SIZE / (1024 * 1024);
+
+    kitoa(free_mb, tmp);
+
+    const char *label = "mem free:   ";
+    for (int i = 0; label[i]; i++) out[pos++] = label[i];
+
+    for (int i = 0; tmp[i]; i++) out[pos++] = tmp[i];
+
+    const char *mb = " MB\n";
+    for (int i = 0; mb[i]; i++) out[pos++] = mb[i];
 
     return pos;
 }
