@@ -66,11 +66,11 @@ static int parse(char *line, char *argv[], int max)
         if (!*p)
                 break;
 
-        if (*p == '"') {
+        if (*p == '\'') {
             p++;
             argv[argc++] = p;
 
-            while (*p && *p != '"')
+            while (*p && *p != '\'')
                     p++;
             if (*p) {
                 *p = 0;
