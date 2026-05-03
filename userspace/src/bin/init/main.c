@@ -35,12 +35,19 @@ static int mount_ext2(void)
 static void print_motd(void)
 {
     static char buf[4096];
-    int64_t n = sys_read("/etc/motd", buf, sizeof(buf) - 1);
+
+    int fd = sys_open("/etc/motd");
+    if (fd < 0) return;
+
+    int64_t n = sys_fread(fd, buf, sizeof(buf) - 1);
+
     if (n > 0)
     {
         buf[n] = '\0';
         printf("%s", buf);
     }
+
+    sys_close(fd);
 }
 
 void main(int argc, char **argv)
@@ -69,3 +76,4 @@ void main(int argc, char **argv)
     puts("[init] FATAL: /bin/shell exited");
     exit(0);
 }
+

@@ -18,11 +18,22 @@ static char art[2048];
 
 static void read_file(const char *path, char *buf, int max)
 {
-    int64_t n = sys_read(path, buf, max - 1);
+    int fd = sys_open(path);
+    if (fd < 0)
+    {
+        buf[0] = 0;
+        return;
+    }
+
+    int64_t n = sys_fread(fd, buf, max - 1);
     if (n < 0) n = 0;
+
     buf[n] = 0;
-    if (n > 0 && buf[n-1] == '\n')
-        buf[n-1] = 0;
+
+    if (n > 0 && buf[n - 1] == '\n')
+        buf[n - 1] = 0;
+
+    sys_close(fd);
 }
 
 void main(void)
@@ -41,7 +52,6 @@ void main(void)
     read_file("/tmp/silex_kernel.txt", art, sizeof(art));
 
     printf("\n");
-
     printf("%s\n", art);
 
     printf("%s@%s\n", hostname, osname);

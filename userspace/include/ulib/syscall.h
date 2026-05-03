@@ -145,3 +145,36 @@ static inline int64_t sys_umount(const char *mountpoint)
     );
     return (int64_t)ret;
 }
+
+static inline int64_t sys_open(const char *path)
+{
+    uint64_t ret;
+    __asm__ volatile("mov $18,%%rax; int $0x80"
+        : "=a"(ret) : "D"((uint64_t)path) : "memory");
+    return (int64_t)ret;
+}
+static inline int64_t sys_close(int fd)
+{
+    uint64_t ret;
+    __asm__ volatile("mov $19,%%rax; int $0x80"
+        : "=a"(ret) : "D"((uint64_t)fd) : "memory");
+    return (int64_t)ret;
+}
+static inline int64_t sys_fread(int fd, void *buf, uint64_t sz)
+{
+    uint64_t ret;
+    __asm__ volatile("mov $20,%%rax; int $0x80"
+        : "=a"(ret)
+        : "D"((uint64_t)fd), "S"((uint64_t)buf), "d"(sz)
+        : "memory");
+    return (int64_t)ret;
+}
+static inline int64_t sys_fwrite(int fd, const void *buf, uint64_t sz)
+{
+    uint64_t ret;
+    __asm__ volatile("mov $21,%%rax; int $0x80"
+        : "=a"(ret)
+        : "D"((uint64_t)fd), "S"((uint64_t)buf), "d"(sz)
+        : "memory");
+    return (int64_t)ret;
+}

@@ -35,7 +35,14 @@ static void read_hostname(char *result)
 {
     static char buf[256];
 
-    int64_t n = sys_read("/etc/hostname", buf, sizeof(buf) - 1);
+    int fd = sys_open("/etc/hostname");
+    if (fd < 0)
+    {
+        result[0] = 0;
+        return;
+    }
+
+    int64_t n = sys_fread(fd, buf, sizeof(buf) - 1);
 
     if (n > 0 && buf[n - 1] == '\n')
         buf[n - 1] = 0;
@@ -43,6 +50,8 @@ static void read_hostname(char *result)
         buf[n] = 0;
 
     strcpy(result, buf);
+
+    sys_close(fd);
 }
 
 static void cmd_pwd(void)

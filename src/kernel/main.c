@@ -18,6 +18,7 @@
 #include <arch/x86_64/tss.h>
 #include <exec/elf.h>
 #include <fs/ext2.h>
+#include <kernel/fd.h>
 
 __attribute__((used, section(".requests")))
 static volatile struct limine_framebuffer_request fb_request = {
@@ -68,7 +69,8 @@ void _start(void)
 
     ata_init();
     kb_init();
-
+	fd_table_init();
+	
     early_vfs_init(
         _binary_build_initramfs_cpio_start,
         _binary_build_initramfs_cpio_end - _binary_build_initramfs_cpio_start

@@ -11,19 +11,37 @@ void main(int argc, char **argv)
         puts("usage: write <file> <text>\n");
         exit(0);
     }
+
     char path[256];
     u_resolve_path(argv[1], path, 256);
+
+    int fd = sys_open(path);
+    if (fd < 0)
+    {
+        puts("failed\n");
+        exit(0);
+    }
+
     char buf[512];
     int pos = 0;
+
     for (int i = 2; i < argc; i++)
     {
         int j = 0;
-        while (argv[i][j] && pos < (int)sizeof(buf)-1)
+        while (argv[i][j] && pos < (int)sizeof(buf) - 1)
             buf[pos++] = argv[i][j++];
-        if (i != argc-1 && pos < (int)sizeof(buf)-1)
+
+        if (i != argc - 1 && pos < (int)sizeof(buf) - 1)
             buf[pos++] = ' ';
     }
+
     buf[pos] = 0;
-    sys_write(path, buf, strlen(buf)) >= 0 ? puts("ok\n") : puts("failed\n");
+
+    int64_t n = sys_fwrite(fd, buf, strlen(buf));
+
+    sys_close(fd);
+
+    n >= 0 ? puts("ok\n") : puts("failed\n");
+
     exit(0);
 }

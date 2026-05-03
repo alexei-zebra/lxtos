@@ -18,3 +18,7 @@
 #define SYS_GETCWD   15
 #define SYS_MOUNT   16
 #define SYS_UMOUNT  17
+#define SYS_OPEN    18
+#define SYS_CLOSE   19
+#define SYS_FREAD   20
+#define SYS_FWRITE  21

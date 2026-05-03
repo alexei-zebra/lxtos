@@ -10,6 +10,8 @@
 #include <fs/tmpfs.h>
 #include <fs/ext2.h>
 #include <drivers/ata.h>
+#include <kernel/fd.h>
+
 
 static char kernel_cwd[256] = "/";
 
@@ -186,7 +188,40 @@ uint64_t syscall_dispatch(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3)
         target->flags &= ~VFS_FLAG_MOUNTPT;
         return 0;
     }
-
+	case SYS_OPEN: {
+	    const char *path  = (const char *)a1;
+	    vfs_node_t *node  = vfs_resolve(path);
+	    if (!node || (node->flags & VFS_FLAG_DIR)) return (uint64_t)-1;
+	    int fd = alloc_fd(node);
+	    return (fd >= 0) ? (uint64_t)fd : (uint64_t)-1;
+	}
+	case SYS_CLOSE: {
+	    int fd = (int)a1;
+	    fd_entry_t *e = get_fd(fd);
+	    if (!e) return (uint64_t)-1;
+	    free_fd(fd);
+	    return 0;
+	}
+	case SYS_FREAD: {
+	    int      fd  = (int)a1;
+	    void    *buf = (void *)a2;
+	    uint64_t sz  = a3;
+	    fd_entry_t *e = get_fd(fd);
+	    if (!e) return (uint64_t)-1;
+	    int64_t n = vnode_read(e->node, buf, e->offset, sz);
+	    if (n > 0) e->offset += n;
+	    return (uint64_t)n;
+	}
+	case SYS_FWRITE: {
+	    int         fd   = (int)a1;
+	    const void *buf  = (const void *)a2;
+	    uint64_t    sz   = a3;
+	    fd_entry_t *e = get_fd(fd);
+	    if (!e) return (uint64_t)-1;
+	    int64_t n = vnode_write(e->node, buf, e->offset, sz);
+	    if (n > 0) e->offset += n;
+	    return (uint64_t)n;
+	}
     default:
         return (uint64_t)-1;
     }
