@@ -16,10 +16,21 @@ void main(int argc, char **argv)
     u_resolve_path(argv[1], path, 256);
 
     int fd = sys_open(path);
+
     if (fd < 0)
     {
-        puts("failed\n");
-        exit(0);
+        if (sys_mkfile(path) != 0)
+        {
+            puts("failed\n");
+            exit(0);
+        }
+
+        fd = sys_open(path);
+        if (fd < 0)
+        {
+            puts("failed\n");
+            exit(0);
+        }
     }
 
     char buf[512];
