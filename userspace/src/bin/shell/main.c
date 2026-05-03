@@ -55,32 +55,6 @@ static void read_hostname(char *result)
     sys_close(fd);
 }
 
-static void cmd_pwd(void)
-{
-    printf("%s\n", cwd);
-}
-
-static void cmd_cd(const char *arg)
-{
-    if (!arg) {
-        sys_chdir("/");
-        sys_getcwd(cwd, MAX_PATH);
-        return;
-    }
-
-    char path[MAX_PATH];
-    resolve_path(arg, path);
-
-    if (sys_chdir(path) == 0)
-            sys_getcwd(cwd, MAX_PATH);
-}
-
-static void cmd_help(void)
-{
-    puts("Builtins: cd, pwd, clear, exit, help");
-    puts("Other commands run from /bin/<name>");
-}
-
 static int parse(char *line, char *argv[], int max)
 {
     int argc = 0;
