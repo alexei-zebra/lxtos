@@ -1,7 +1,8 @@
+#include <libc/stdlib.h>
 #include <libc/stdio.h>
 #include <libc/string.h>
 #include <ulib/syscall.h>
-#include <stdlib.h>
+#include <ulib/path.h>
 
 #define MAX_PATH  256
 #define MAX_INPUT 256
@@ -10,28 +11,6 @@
 static char cwd[MAX_PATH] = "/";
 static char hostname[256];
 
-
-static void resolve_path(const char *input, char *result)
-{
-    if (input[0] == '/') {
-        strcpy(result, input);
-        return;
-    }
-
-    strcpy(result, cwd);
-
-    int len = strlen(result);
-
-    if (len > 1 && result[len - 1] != '/') {
-        result[len++] = '/';
-        result[len] = 0;
-    }
-
-    for (int i = 0; input[i] && len < MAX_PATH - 1; i++)
-            result[len++] = input[i];
-
-    result[len] = 0;
-}
 
 static void read_hostname(char *result)
 {
@@ -156,7 +135,7 @@ void main(void)
                 sys_getcwd(cwd, MAX_PATH);
             } else {
                 char path[MAX_PATH];
-                resolve_path(arg, path);
+                u_resolve_path(arg, path, MAX_PATH);
                 if (sys_chdir(path) == 0)
                     sys_getcwd(cwd, MAX_PATH);
             }
