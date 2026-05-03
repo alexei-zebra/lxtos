@@ -1,7 +1,20 @@
 #pragma once
+
 #include <stdint.h>
 
+#define COLOR_BG     0x0D0D1A
+#define COLOR_FG     0xFFFFFF
+#define COLOR_PROMPT 0x00CC44
+#define COLOR_INPUT  0xFFFFFF
+#define COLOR_DIR    0x4488FF
+
+
 extern uint32_t fb_font_scale; /* like 1, 2, 3... */
+
+extern uint32_t fb_cursor_x;
+extern uint32_t fb_cursor_y;
+extern uint64_t fb_width;
+extern uint64_t fb_height;
 
 
 // Initialize the framebuffer
@@ -30,15 +43,3 @@ void fb_newline(uint32_t bg);
 
 // Draw a UTF-8 character at the cursor position
 void fb_putchar_cursor_utf8(char byte, uint32_t fg, uint32_t bg);
-
-#define COLOR_BG     0x0D0D1A
-#define COLOR_FG     0xFFFFFF
-#define COLOR_PROMPT 0x00CC44
-#define COLOR_INPUT  0xFFFFFF
-#define COLOR_DIR    0x4488FF
-
-
-extern uint32_t fb_cursor_x;
-extern uint32_t fb_cursor_y;
-extern uint64_t fb_width;
-extern uint64_t fb_height;

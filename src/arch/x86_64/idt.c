@@ -1,7 +1,9 @@
 #include <arch/x86_64/idt.h>
 
+
 extern void idt_load(struct idt_ptr*);
 extern void irq1();
+
 
 static struct idt_entry idt[256];
 static struct idt_ptr idtp;

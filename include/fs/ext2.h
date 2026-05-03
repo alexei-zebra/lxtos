@@ -1,10 +1,12 @@
 #pragma once
+
 #include <stdint.h>
 
 #define EXT2_SUPER_MAGIC  0xEF53
 #define EXT2_ROOT_INO     2
 #define EXT2_FT_REG_FILE  1
 #define EXT2_FT_DIR       2
+
 
 typedef struct {
     uint32_t s_inodes_count;

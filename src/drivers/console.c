@@ -2,6 +2,7 @@
 #include <drivers/keyboard.h>
 #include <drivers/framebuffer.h>
 
+
 static int64_t console_read(vfs_node_t *node, void *buf, uint64_t offset, uint64_t size)
 {
     (void)node; (void)offset;
@@ -38,10 +39,12 @@ static int64_t console_write(vfs_node_t *node, const void *buf, uint64_t offset,
     return size;
 }
 
+
 vfs_ops_t console_ops = {
     .read  = console_read,
     .write = console_write,
 };
+
 
 void console_init_node(vfs_node_t *node)
 {

@@ -1,4 +1,5 @@
 #pragma once
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -9,6 +10,7 @@
 
 #define KERNEL_FLAGS  (PAGE_PRESENT | PAGE_WRITE)
 #define USER_FLAGS    (PAGE_PRESENT | PAGE_WRITE | PAGE_USER)
+
 
 typedef uint64_t *pml4_t;
 

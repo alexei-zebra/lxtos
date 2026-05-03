@@ -26,9 +26,11 @@
 #define ATA_SR_DRQ 0x08
 #define ATA_SR_ERR 0x01 // o my god error
 
+
 ata_disk_t ata_disks[2][2];
 
 static uint16_t bases[2] = {ATA_PRIMARY_BASE, ATA_SECONDARY_BASE}; // port primary/secondary
+
 
 // wait when BSY = 0
 static void ata_wait_busy(uint16_t base) {
@@ -102,8 +104,6 @@ int ata_read_sector(int bus, ata_drive_t drive, uint32_t lba, uint16_t *buffer) 
     return 0;
 }
 
-
-// ctrl c; ctrl v; xD
 int ata_write_sector(int bus, ata_drive_t driver, uint32_t lba, uint16_t *buffer) {
     uint16_t base = bases[bus];
 
@@ -124,6 +124,5 @@ int ata_write_sector(int bus, ata_drive_t driver, uint32_t lba, uint16_t *buffer
     outb(base + ATA_REG_COMMAND, ATA_CMD_CACHE_FLUSH);
     ata_wait_busy(base);
 
-    return 0; 
-
+    return 0;
 }

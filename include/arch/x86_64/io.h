@@ -1,5 +1,4 @@
-#ifndef IO_H
-#define IO_H
+#pragma once
 
 #include <stdint.h>
 
@@ -24,5 +23,3 @@ void outl(uint16_t port, uint32_t val);
 
 // Wait for I/O operations to complete
 void io_wait();
-
-#endif

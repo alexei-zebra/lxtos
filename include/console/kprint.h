@@ -1,5 +1,12 @@
 #pragma once
+
 #include <stdint.h>
+
+#define COLOR_BG     0x0D0D1A
+#define COLOR_FG     0xFFFFFF
+#define COLOR_PROMPT 0x00CC44
+#define COLOR_INPUT  0xFFFFFF
+#define COLOR_DIR    0x4488FF
 
 
 // Print a string
@@ -13,10 +20,3 @@ void kputhex(uint64_t val);
 
 // Print a decimal number
 void kputdec(uint64_t val);
-
-
-#define COLOR_BG     0x0D0D1A
-#define COLOR_FG     0xFFFFFF
-#define COLOR_PROMPT 0x00CC44
-#define COLOR_INPUT  0xFFFFFF
-#define COLOR_DIR    0x4488FF

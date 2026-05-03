@@ -1,7 +1,12 @@
 #pragma once
+
 #include <stdint.h>
 
-typedef enum { ATA_MASTER = 0, ATA_SLAVE = 1 } ata_drive_t;
+
+typedef enum {
+    ATA_MASTER = 0,
+    ATA_SLAVE = 1
+} ata_drive_t;
 
 typedef struct {
     int      present;

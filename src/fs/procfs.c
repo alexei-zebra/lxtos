@@ -6,6 +6,7 @@
 
 #define PROCFS_MAX_ENTRIES 32
 
+
 extern uint8_t kernel_heap[];
 extern uint64_t heap_size;
 extern uint64_t get_total_ram(void);
@@ -23,40 +24,46 @@ typedef struct {
 static vfs_node_t      *proc_root = NULL;
 static procfs_dir_data_t proc_dir_data;
 
+
 static int64_t procfs_read(vfs_node_t *node, void *buf, uint64_t offset, uint64_t size)
 {
     procfs_file_data_t *d = (procfs_file_data_t *)node->fs_data;
-    if (!d->fn) return 0;
+    if (!d->fn)
+            return 0;
 
     uint8_t tmp[4096];
     int64_t total = d->fn(tmp, sizeof(tmp));
-    if (total <= 0) return 0;
-    if (offset >= (uint64_t)total) return 0;
+    if (total <= 0)
+            return 0;
+    if (offset >= (uint64_t)total)
+            return 0;
 
     uint64_t avail   = (uint64_t)total - offset;
     uint64_t to_read = size < avail ? size : avail;
     uint8_t *src = tmp + offset;
     uint8_t *dst = (uint8_t *)buf;
-    for (uint64_t i = 0; i < to_read; i++) dst[i] = src[i];
+    for (uint64_t i = 0; i < to_read; i++)
+            dst[i] = src[i];
     return (int64_t)to_read;
 }
 
 static vfs_node_t *procfs_finddir(vfs_node_t *node, const char *name)
 {
     (void)node;
-    for (int i = 0; i < proc_dir_data.count; i++) {
-        if (kstrcmp(proc_dir_data.entries[i]->name, name) == 0)
-            return proc_dir_data.entries[i];
-    }
+    for (int i = 0; i < proc_dir_data.count; i++)
+            if (kstrcmp(proc_dir_data.entries[i]->name, name) == 0)
+                    return proc_dir_data.entries[i];
     return NULL;
 }
 
 static vfs_node_t *procfs_readdir_fn(vfs_node_t *node, uint32_t index)
 {
     (void)node;
-    if ((int)index >= proc_dir_data.count) return NULL;
+    if ((int)index >= proc_dir_data.count)
+            return NULL;
     return proc_dir_data.entries[index];
 }
+
 
 static vfs_ops_t procfs_dir_ops = {
     .finddir = procfs_finddir,
@@ -67,10 +74,12 @@ static vfs_ops_t procfs_file_ops = {
     .read = procfs_read,
 };
 
+
 vfs_node_t *procfs_create(void)
 {
     proc_root = kzalloc(sizeof(vfs_node_t));
-    if (!proc_root) return NULL;
+    if (!proc_root)
+            return NULL;
     kstrcpy(proc_root->name, "proc", VFS_MAX_NAME);
     proc_root->flags   = VFS_FLAG_DIR | VFS_FLAG_MOUNTPT;
     proc_root->fs_data = &proc_dir_data;
@@ -81,12 +90,15 @@ vfs_node_t *procfs_create(void)
 
 vfs_node_t *procfs_register(const char *name, procfs_read_fn fn)
 {
-    if (!proc_root) return NULL;
-    if (proc_dir_data.count >= PROCFS_MAX_ENTRIES) return NULL;
+    if (!proc_root)
+            return NULL;
+    if (proc_dir_data.count >= PROCFS_MAX_ENTRIES)
+            return NULL;
 
     vfs_node_t         *node = kzalloc(sizeof(vfs_node_t));
     procfs_file_data_t *data = kzalloc(sizeof(procfs_file_data_t));
-    if (!node || !data) return NULL;
+    if (!node || !data)
+            return NULL;
 
     kstrcpy(node->name, name, VFS_MAX_NAME);
     node->flags   = VFS_FLAG_FILE;
@@ -99,7 +111,6 @@ vfs_node_t *procfs_register(const char *name, procfs_read_fn fn)
     return node;
 }
 
-
 int64_t proc_mem_read(void *buf, uint64_t max)
 {
     char *out = (char *)buf;
@@ -107,33 +118,42 @@ int64_t proc_mem_read(void *buf, uint64_t max)
     int pos = 0;
     (void)max;
 
-	
     const char *h0 = "mem total:  ";
-    for (int i = 0; h0[i]; i++) out[pos++] = h0[i];
+    for (int i = 0; h0[i]; i++)
+            out[pos++] = h0[i];
     kitoa(pmm_total_bytes() / 1024 / 1024, tmp);
-    for (int i = 0; tmp[i]; i++) out[pos++] = tmp[i];
+    for (int i = 0; tmp[i]; i++)
+            out[pos++] = tmp[i];
     const char *mb = " MB\n";
-    for (int i = 0; mb[i]; i++) out[pos++] = mb[i];
+    for (int i = 0; mb[i]; i++)
+            out[pos++] = mb[i];
 
     const char *h1 = "heap total: ";
-    for (int i = 0; h1[i]; i++) out[pos++] = h1[i];
+    for (int i = 0; h1[i]; i++)
+            out[pos++] = h1[i];
     kitoa(kmalloc_heap_size(), tmp);
-    for (int i = 0; tmp[i]; i++) out[pos++] = tmp[i];
+    for (int i = 0; tmp[i]; i++)
+            out[pos++] = tmp[i];
     out[pos++] = '\n';
 
     const char *h2 = "heap free:  ";
-    for (int i = 0; h2[i]; i++) out[pos++] = h2[i];
+    for (int i = 0; h2[i]; i++)
+            out[pos++] = h2[i];
     kitoa(kmalloc_free_size(), tmp);
-    for (int i = 0; tmp[i]; i++) out[pos++] = tmp[i];
+    for (int i = 0; tmp[i]; i++)
+            out[pos++] = tmp[i];
     out[pos++] = '\n';
 
     return pos;
 }
+
 static void cpuid(uint32_t leaf, uint32_t *eax, uint32_t *ebx, uint32_t *ecx, uint32_t *edx)
 {
-    __asm__ volatile("cpuid"
+    __asm__ volatile(
+        "cpuid"
         : "=a"(*eax), "=b"(*ebx), "=c"(*ecx), "=d"(*edx)
-        : "a"(leaf), "c"(0));
+        : "a"(leaf), "c"(0)
+    );
 }
 
 int64_t proc_cpu_vendor_read(void *buf, uint64_t max)
@@ -146,12 +166,16 @@ int64_t proc_cpu_vendor_read(void *buf, uint64_t max)
     cpuid(0, &eax, &ebx, &ecx, &edx);
 
     char vendor[13];
-    for (int i = 0; i < 4; i++) vendor[i]     = (ebx >> (i * 8)) & 0xFF;
-    for (int i = 0; i < 4; i++) vendor[i + 4] = (edx >> (i * 8)) & 0xFF;
-    for (int i = 0; i < 4; i++) vendor[i + 8] = (ecx >> (i * 8)) & 0xFF;
+    for (int i = 0; i < 4; i++)
+            vendor[i] = (ebx >> (i * 8)) & 0xFF;
+    for (int i = 0; i < 4; i++)
+            vendor[i + 4] = (edx >> (i * 8)) & 0xFF;
+    for (int i = 0; i < 4; i++)
+            vendor[i + 8] = (ecx >> (i * 8)) & 0xFF;
     vendor[12] = 0;
 
-    for (int i = 0; vendor[i]; i++) out[pos++] = vendor[i];
+    for (int i = 0; vendor[i]; i++)
+            out[pos++] = vendor[i];
     out[pos++] = '\n';
 
     return pos;
@@ -172,7 +196,7 @@ int64_t proc_cpu_model_read(void *buf, uint64_t max)
     char *str = (char *)brand;
 
     for (int i = 0; i < 48 && str[i]; i++)
-        out[pos++] = str[i];
+            out[pos++] = str[i];
 
     out[pos++] = '\n';
 
@@ -188,9 +212,11 @@ int64_t proc_mem_total_read(void *buf, uint64_t max)
 
     kitoa(pmm_total_bytes() / 1024 / 1024, tmp);
 
-    for (int i = 0; tmp[i]; i++) out[pos++] = tmp[i];
+    for (int i = 0; tmp[i]; i++)
+            out[pos++] = tmp[i];
     const char *mb = " MB\n";
-    for (int i = 0; mb[i]; i++) out[pos++] = mb[i];
+    for (int i = 0; mb[i]; i++)
+            out[pos++] = mb[i];
 
     return pos;
 }
@@ -204,7 +230,8 @@ int64_t proc_heap_total_read(void *buf, uint64_t max)
 
     kitoa(kmalloc_heap_size(), tmp);
 
-    for (int i = 0; tmp[i]; i++) out[pos++] = tmp[i];
+    for (int i = 0; tmp[i]; i++)
+            out[pos++] = tmp[i];
     out[pos++] = '\n';
 
     return pos;
@@ -219,7 +246,8 @@ int64_t proc_heap_free_read(void *buf, uint64_t max)
 
     kitoa(kmalloc_free_size(), tmp);
 
-    for (int i = 0; tmp[i]; i++) out[pos++] = tmp[i];
+    for (int i = 0; tmp[i]; i++)
+            out[pos++] = tmp[i];
     out[pos++] = '\n';
 
     return pos;
@@ -237,12 +265,15 @@ int64_t proc_mem_free_read(void *buf, uint64_t max)
     kitoa(free_mb, tmp);
 
     const char *label = "mem free:   ";
-    for (int i = 0; label[i]; i++) out[pos++] = label[i];
+    for (int i = 0; label[i]; i++)
+            out[pos++] = label[i];
 
-    for (int i = 0; tmp[i]; i++) out[pos++] = tmp[i];
+    for (int i = 0; tmp[i]; i++)
+            out[pos++] = tmp[i];
 
     const char *mb = " MB\n";
-    for (int i = 0; mb[i]; i++) out[pos++] = mb[i];
+    for (int i = 0; mb[i]; i++)
+            out[pos++] = mb[i];
 
     return pos;
 }

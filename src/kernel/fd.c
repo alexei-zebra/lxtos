@@ -1,7 +1,9 @@
 #include <kernel/fd.h>
 #include <lib/kmalloc.h>
 
+
 static fd_entry_t fd_table[FD_MAX];
+
 
 void fd_table_init(void)
 {
@@ -27,14 +29,17 @@ int alloc_fd(vfs_node_t *node)
 
 fd_entry_t *get_fd(int fd)
 {
-    if (fd < 0 || fd >= FD_MAX) return NULL;
-    if (!fd_table[fd].used)     return NULL;
+    if (fd < 0 || fd >= FD_MAX)
+            return NULL;
+    if (!fd_table[fd].used)
+            return NULL;
     return &fd_table[fd];
 }
 
 void free_fd(int fd)
 {
-    if (fd < 0 || fd >= FD_MAX) return;
+    if (fd < 0 || fd >= FD_MAX)
+            return;
     fd_table[fd].used   = 0;
     fd_table[fd].node   = NULL;
     fd_table[fd].offset = 0;

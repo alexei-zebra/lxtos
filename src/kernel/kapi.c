@@ -17,12 +17,13 @@ static void     _free   (void *p)                                { kfree(p); }
 static int      _strlen (const char *s)                          { return kstrlen(s); }
 static int      _strcmp (const char *a, const char *b)           { return kstrcmp(a, b); }
 static void     _strcpy (char *d, const char *s, int max)        { kstrcpy(d, s, max); }
-static void     _memcpy (void *d, const void *s, uint64_t n)    { kmemcpy(d, s, n); }
-static void     _memset (void *d, uint8_t v, uint64_t n)        { kmemset(d, v, n); }
+static void     _memcpy (void *d, const void *s, uint64_t n)     { kmemcpy(d, s, n); }
+static void     _memset (void *d, uint8_t v, uint64_t n)         { kmemset(d, v, n); }
 static void    *_vfs_open(const char *path)                      { return vfs_resolve(path); }
 static int64_t  _vfs_node_read(void *node, void *buf, uint64_t off, uint64_t sz) {
     return vnode_read((vfs_node_t *)node, buf, off, sz);
 }
+
 
 static kernel_api_t kapi = {
     .puts          = _puts,

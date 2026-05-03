@@ -1,5 +1,7 @@
 #pragma once
+
 #include <stdint.h>
+
 
 struct __attribute__((packed)) gdt_entry {
     uint16_t limit_low;
