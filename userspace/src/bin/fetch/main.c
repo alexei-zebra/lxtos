@@ -3,6 +3,7 @@
 #include <libc/string.h>
 #include <ulib/syscall.h>
 
+
 static char hostname[64];
 static char osname[64];
 
@@ -16,22 +17,23 @@ static char cpu_model[128];
 
 static char art[2048];
 
+
 static void read_file(const char *path, char *buf, int max)
 {
     int fd = sys_open(path);
-    if (fd < 0)
-    {
+    if (fd < 0) {
         buf[0] = 0;
         return;
     }
 
     int64_t n = sys_fread(fd, buf, max - 1);
-    if (n < 0) n = 0;
+    if (n < 0)
+            n = 0;
 
     buf[n] = 0;
 
     if (n > 0 && buf[n - 1] == '\n')
-        buf[n - 1] = 0;
+            buf[n - 1] = 0;
 
     sys_close(fd);
 }

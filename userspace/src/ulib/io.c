@@ -1,6 +1,7 @@
 #include <ulib/io.h>
 #include <ulib/syscall.h>
 
+
 void u_puts(const char *s)
 {
     sys_puts(s);
