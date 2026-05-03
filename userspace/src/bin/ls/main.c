@@ -1,33 +1,30 @@
+#include <stdbool.h>
 #include <libc/stdio.h>
 #include <libc/string.h>
 #include <libc/stdlib.h>
 #include <ulib/syscall.h>
+#include <ulib/args.h>
 
-void main(int argc, char **argv)
+int main(int argc, char *argv[])
 {
     char cwdbuf[256];
     const char *path;
-    char b_list = 0, b_all = 0, b_path = 0;
+    bool b_list = false,
+         b_all = false,
+         b_path = false;
 
-    if (argc > 1)
-    {
-        for (int i = 1; i < argc; i++)
-        {
-            const char *arg = argv[i];
-            if (arg[0] == '-')
-            {
-                for (char *ops = (char*)arg + 1; *ops; ops++)
-                {
-                    if (*ops == 'l') b_list = 1;
-                    if (*ops == 'a') b_all  = 1;
-                }
-            }
-            else
-            {
-                b_path = 1;
-                path = arg;
-            }
+    int opt;
+    while ((opt = getopt(argc, argv, "al")) != -1) {
+        switch (opt) {
+            case 'a': b_all = true; break;
+            case 'l': b_list = true; break;
+            case '?': printf("unknown/invalid option\n"); break;
         }
+    }
+
+    if (optind == argc - 1) {
+        b_path = true;
+        path = argv[optind];
     }
 
     if (!b_path)
@@ -48,5 +45,6 @@ void main(int argc, char **argv)
         printf("%s%s%s", name, r == 1 ? "/" : "", b_list ? "\n" : "  ");
     }
     printf("");
+
     exit(0);
 }

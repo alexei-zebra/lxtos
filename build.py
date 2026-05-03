@@ -243,8 +243,13 @@ def populate_disk():
     sh(f"sudo umount /tmp/{OS_NAME}_mnt")
 
 
+def clean_build():
+    sh("rm -rf build")
+
+
 def clean():
-    sh(f"rm -rf build {ISO_ROOT_DIR} {LIMINE_DIR}")
+    clean_build()
+    sh(f"rm -rf {ISO_ROOT_DIR} {LIMINE_DIR}")
     sh(f"rm -f {KERNEL} {ISO}")
 
 
@@ -259,14 +264,14 @@ if __name__ == "__main__":
         description=f"{OS_NAME} build script"
     )
 
-    parser.add_argument("-b", "--build", choices=["all", "a", "kernel", "k", "iso", "i"],
+    parser.add_argument("-b", "--build", choices=["all", "a", "kernel", "k", "iso", "i", "rebuild", "r"],
                         nargs="?", const="all", metavar="METHOD",
-                        help="METHOD in [all/a, kernel/k, iso/i], default: all")
+                        help="METHOD in [all/a, kernel/k, iso/i, rebuild/r], default: all")
     parser.add_argument("-r", "--run", action="store_true",
                         help="run a vm with OS img")
-    parser.add_argument("-c", "--clean", choices=["all", "a", "disk", "d"],
+    parser.add_argument("-c", "--clean", choices=["all", "a", "disk", "d", "build", "b"],
                         nargs="?", const="all", metavar="METHOD",
-                        help="METHOD in [all/a, disk/d], default: all")
+                        help="METHOD in [all/a, disk/d, build/b], default: all")
     parser.add_argument("-p", "--populate-disk", action="store_true",
                         help="populate disk image with default files")
 
@@ -285,6 +290,10 @@ if __name__ == "__main__":
                 build_iso()
             elif val in ["kernel", "k"]:
                 build_kernel()
+            elif val in ["rebuild", "r"]:
+                clean_build()
+                build_kernel()
+                build_iso()
 
         elif arg == "run":
             run_qemu()
@@ -294,6 +303,8 @@ if __name__ == "__main__":
                 clean()
             elif val in ["disk", "d"]:
                 clean_disk()
+            elif val in ["build", "b"]:
+                clean_build()
 
         elif arg == "populate_disk":
             populate_disk()
