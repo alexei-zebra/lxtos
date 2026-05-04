@@ -3,10 +3,10 @@
 #include <ulib/syscall.h>
 #include <ulib/path.h>
 
+
 void main(int argc, char **argv)
 {
-    if (argc < 2)
-    {
+    if (argc < 2) {
         puts("usage: touch <file>\n");
         exit(0);
     }
@@ -16,8 +16,7 @@ void main(int argc, char **argv)
 
     int fd = sys_open(path);
 
-    if (fd >= 0)
-    {
+    if (fd >= 0) {
         sys_close(fd);
         puts("ok\n");
         exit(0);

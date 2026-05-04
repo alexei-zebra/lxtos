@@ -4,10 +4,10 @@
 #include <ulib/syscall.h>
 #include <ulib/path.h>
 
+
 void main(int argc, char **argv)
 {
-    if (argc < 3)
-    {
+    if (argc < 3) {
         puts("usage: write <file> <text>\n");
         exit(0);
     }
@@ -17,17 +17,14 @@ void main(int argc, char **argv)
 
     int fd = sys_open(path);
 
-    if (fd < 0)
-    {
-        if (sys_mkfile(path) != 0)
-        {
+    if (fd < 0) {
+        if (sys_mkfile(path) != 0) {
             puts("failed\n");
             exit(0);
         }
 
         fd = sys_open(path);
-        if (fd < 0)
-        {
+        if (fd < 0) {
             puts("failed\n");
             exit(0);
         }
@@ -36,14 +33,13 @@ void main(int argc, char **argv)
     char buf[512];
     int pos = 0;
 
-    for (int i = 2; i < argc; i++)
-    {
+    for (int i = 2; i < argc; i++) {
         int j = 0;
         while (argv[i][j] && pos < (int)sizeof(buf) - 1)
-            buf[pos++] = argv[i][j++];
+                buf[pos++] = argv[i][j++];
 
         if (i != argc - 1 && pos < (int)sizeof(buf) - 1)
-            buf[pos++] = ' ';
+                buf[pos++] = ' ';
     }
 
     buf[pos] = 0;

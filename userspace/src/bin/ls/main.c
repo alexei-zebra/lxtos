@@ -5,6 +5,7 @@
 #include <ulib/syscall.h>
 #include <ulib/args.h>
 
+
 int main(int argc, char *argv[])
 {
     char cwdbuf[256];
@@ -14,21 +15,25 @@ int main(int argc, char *argv[])
          b_path = false;
 
     int opt;
-    while ((opt = getopt(argc, argv, "al")) != -1) {
-        switch (opt) {
-            case 'a': b_all = true; break;
-            case 'l': b_list = true; break;
-            case '?': printf("unknown/invalid option\n"); break;
-        }
-    }
+    while ((opt = getopt(argc, argv, "al")) != -1)
+            switch (opt) {
+                case 'a':
+                    b_all = true;
+                    break;
+                case 'l':
+                    b_list = true;
+                    break;
+                case '?':
+                    printf("unknown/invalid option\n");
+                    break;
+            }
 
     if (optind == argc - 1) {
         b_path = true;
         path = argv[optind];
     }
 
-    if (!b_path)
-    {
+    if (!b_path) {
         sys_getcwd(cwdbuf, sizeof(cwdbuf));
         path = cwdbuf;
     }
@@ -38,10 +43,10 @@ int main(int argc, char *argv[])
     int64_t r;
 
     printf("");
-    while ((r = sys_readdir(path, i, name)) != (int64_t)-1)
-    {
+    while ((r = sys_readdir(path, i, name)) != (int64_t)-1) {
         i++;
-        if (name[0] == '.' && !b_all) continue;
+        if (name[0] == '.' && !b_all)
+                continue;
         printf("%s%s%s", name, r == 1 ? "/" : "", b_list ? "\n" : "  ");
     }
     printf("");

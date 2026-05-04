@@ -7,6 +7,9 @@
 #include <fs/vfs.h>
 #include <arch/x86_64/usermode.h>
 
+#define USER_STACK_TOP  0x7FFFFFFFE000ULL
+#define USER_STACK_PAGES 16
+
 
 int elf_load(pml4_t pml4, const uint8_t *data,
              uint64_t size, uint64_t *out_entry)
@@ -61,10 +64,6 @@ int elf_load(pml4_t pml4, const uint8_t *data,
     return 0;
 }
 
-
-#define USER_STACK_TOP  0x7FFFFFFFE000ULL
-#define USER_STACK_PAGES 16
-
 int elf_exec(const char *path) {
     const char *argv[] = { path, NULL };
     return elf_exec_argv(path, argv);
@@ -117,7 +116,7 @@ int elf_exec_argv(const char *path, const char **uargv)
     uint64_t sp = USER_STACK_TOP;
     uint64_t arg_ptrs[16];
 
-    
+
     for (int i = argc - 1; i >= 0; i--) {
         int len = kstrlen(uargv[i]) + 1;
         sp -= len;

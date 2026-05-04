@@ -13,6 +13,7 @@
 #define SC_LCTRL    0x1D
 #define SC_LCTRL_R  0x9D
 
+
 static const char scancode_map[128] = {
     0,   27,  '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',
     '\t','q',  'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',
@@ -45,6 +46,7 @@ static const char scancode_map_shift[128] = {
 
 static int shift_held = 0;
 static int ctrl_held  = 0;
+
 
 void kb_init(void)
 {

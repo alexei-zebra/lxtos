@@ -1,12 +1,12 @@
 #include <console/kprint.h>
 #include <kernel/syscall.h>
 
+
 void isr_handler(uint64_t *stack)
 {
     uint64_t vec = stack[10];
 
-    if (vec == 128)
-    {
+    if (vec == 128) {
     	uint64_t num   = stack[9];
     	uint64_t arg1  = stack[4];
     	uint64_t arg2  = stack[5];

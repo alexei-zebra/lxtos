@@ -1,6 +1,7 @@
 #include <libc/stdio.h>
 #include <libc/string.h>
 
+
 char *optarg = NULL;
 int   optind = 1;
 int   opterr = 1;
@@ -8,6 +9,7 @@ int   optopt = 0;
 
 static char *optcursor = NULL;
 static int  nextchar   = 0;
+
 
 int getopt(int argc, char * const argv[], const char *optstring)
 {
@@ -47,7 +49,7 @@ int getopt(int argc, char * const argv[], const char *optstring)
     const char *pos = strchr(optstring, optopt);
     if (pos == NULL) {
         if (opterr)
-            printf("%s: illegal option -- %c\n", argv[0], optopt);
+                printf("%s: illegal option -- %c\n", argv[0], optopt);
         nextchar++;
         if (optcursor[nextchar] == '\0') {
             optind++;
@@ -60,9 +62,9 @@ int getopt(int argc, char * const argv[], const char *optstring)
     if (pos[1] == ':') {
         /* Check for attached argument */
         if (optcursor[nextchar + 1] != '\0') {
-            if (opterr)
-                printf("%s: option '-%c' cannot have attached argument\n",
-                       argv[0], optopt);
+                if (opterr)
+                        printf("%s: option '-%c' cannot have attached argument\n",
+                               argv[0], optopt);
             optind++;
             optcursor = NULL;
             return '?';
@@ -75,8 +77,8 @@ int getopt(int argc, char * const argv[], const char *optstring)
             return optopt;
         } else {
             if (opterr)
-                printf("%s: option requires an argument -- %c\n",
-                       argv[0], optopt);
+                    printf("%s: option requires an argument -- %c\n",
+                           argv[0], optopt);
             optind++;
             optcursor = NULL;
             return '?';

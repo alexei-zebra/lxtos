@@ -20,6 +20,7 @@
 #include <fs/ext2.h>
 #include <kernel/fd.h>
 
+
 __attribute__((used, section(".requests")))
 static volatile struct limine_framebuffer_request fb_request = {
     .id = LIMINE_FRAMEBUFFER_REQUEST,
@@ -30,6 +31,7 @@ extern uint8_t _binary_build_initramfs_cpio_start[];
 extern uint8_t _binary_build_initramfs_cpio_end[];
 
 pml4_t kernel_pml4;
+
 
 // min vfs (only tmpfs and initramfs)
 static void early_vfs_init(void *initramfs_data, uint64_t initramfs_size)
@@ -48,13 +50,14 @@ static void early_vfs_init(void *initramfs_data, uint64_t initramfs_size)
     vfs_mkdir("/etc");
 
     if (initramfs_data && initramfs_size > 0)
-        initramfs_unpack(initramfs_data, initramfs_size, root);
+            initramfs_unpack(initramfs_data, initramfs_size, root);
 }
 
 void _start(void)
 {
     if (!fb_request.response || fb_request.response->framebuffer_count == 0)
-        for (;;) __asm__ volatile("hlt");
+            for (;;)
+                    __asm__ volatile("hlt");
 
     struct limine_framebuffer *fb = fb_request.response->framebuffers[0];
     fb_init(fb->address, fb->width, fb->height, fb->pitch, fb->bpp);
@@ -71,14 +74,13 @@ void _start(void)
     kb_init();
 	fd_table_init();
 	
-    early_vfs_init(
-        _binary_build_initramfs_cpio_start,
-        _binary_build_initramfs_cpio_end - _binary_build_initramfs_cpio_start
-    );
+    early_vfs_init(_binary_build_initramfs_cpio_start,
+                   _binary_build_initramfs_cpio_end - _binary_build_initramfs_cpio_start);
 
     kputs("[kernel] starting /bin/init\n");
     if (elf_exec("/bin/init") != 0)
-        kputs("FATAL: cannot exec /bin/init\n");
+            kputs("FATAL: cannot exec /bin/init\n");
 
-    for (;;) __asm__ volatile("hlt");
+    for (;;)
+            __asm__ volatile("hlt");
 }

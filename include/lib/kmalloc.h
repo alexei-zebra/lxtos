@@ -1,6 +1,8 @@
 #pragma once
+
 #include <stdint.h>
 #include <stddef.h>
+
 
 // Kernel memory allocator
 void kmalloc_init(void *heap_start, uint64_t heap_size);

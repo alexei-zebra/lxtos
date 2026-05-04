@@ -1,4 +1,5 @@
 #pragma once
+
 #include <stdint.h>
 #include <mm/vmm.h>
 
@@ -9,6 +10,7 @@
 #define PF_X       1
 #define PF_W       2
 #define PF_R       4
+
 
 typedef struct __attribute__((packed)) {
     uint8_t  e_ident[16];
@@ -37,6 +39,7 @@ typedef struct __attribute__((packed)) {
     uint64_t p_memsz;
     uint64_t p_align;
 } elf64_phdr_t;
+
 
 int elf_load(pml4_t pml4, const uint8_t *data,
                   uint64_t size, uint64_t *out_entry);

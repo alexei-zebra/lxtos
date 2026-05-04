@@ -1,5 +1,7 @@
 #pragma once
+
 #include <stdint.h>
+
 
 // Get the length of a string
 int kstrlen(const char *s);

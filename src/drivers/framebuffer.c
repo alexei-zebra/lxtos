@@ -2,6 +2,7 @@
 #include <console/font.h>
 #include <stdint.h>
 
+
 static void    *fb_addr;
 uint64_t        fb_width;
 uint64_t        fb_height;
@@ -12,6 +13,10 @@ static uint32_t fb_bytes_per_pixel;
 uint32_t fb_cursor_x = 0;
 uint32_t fb_cursor_y = 0;
 uint32_t fb_font_scale = 1;
+
+static uint32_t utf8_cp   = 0;
+static int      utf8_left = 0;
+
 
 void fb_init(void *addr, uint64_t width, uint64_t height, uint64_t pitch, uint16_t bpp)
 {
@@ -151,9 +156,6 @@ static void fb_putcodepoint(uint32_t cp, uint32_t fg, uint32_t bg)
     char c = (cp < 128) ? (char)cp : '?';
     fb_putchar_cursor(c, fg, bg);
 }
-
-static uint32_t utf8_cp   = 0;
-static int      utf8_left = 0;
 
 void fb_putchar_cursor_utf8(char byte, uint32_t fg, uint32_t bg)
 {

@@ -1,24 +1,27 @@
 #include <arch/x86_64/gdt.h>
 #include <lib/kstring.h>
 
+
 extern void gdt_load(struct gdt_ptr *ptr);
 extern void tss_load(uint16_t selector);
 extern void gdt_flush_segments(void);
 
+
 static struct gdt_entry gdt[7];
 static struct gdt_ptr   gdtp;
 
-struct tss       kernel_tss;
+struct tss kernel_tss;
+
 
 static void gdt_set(int i, uint64_t base, uint64_t limit, uint8_t access, uint8_t gran)
 {
-    gdt[i].limit_low   = limit & 0xFFFF;
-    gdt[i].base_low    = base & 0xFFFF;
-    gdt[i].base_mid    = (base >> 16) & 0xFF;
-    gdt[i].access      = access;
-    gdt[i].granularity = ((limit >> 16) & 0x0F);
+    gdt[i].limit_low    = limit & 0xFFFF;
+    gdt[i].base_low     = base & 0xFFFF;
+    gdt[i].base_mid     = (base >> 16) & 0xFF;
+    gdt[i].access       = access;
+    gdt[i].granularity  = ((limit >> 16) & 0x0F);
     gdt[i].granularity |= gran & 0xF0;
-    gdt[i].base_high   = (base >> 24) & 0xFF;
+    gdt[i].base_high    = (base >> 24) & 0xFF;
 }
 
 static void gdt_set_tss(int i, struct tss *tss)
@@ -49,19 +52,19 @@ void gdt_init(void)
 
     // ring0
     gdt_set(1, 0, 0x000FFFFF,
-        0x9A, 0xA0);
+            0x9A, 0xA0);
 
     // kernel data
     gdt_set(2, 0, 0x000FFFFF,
-        0x92, 0xA0);
+            0x92, 0xA0);
 
     // ring3
     gdt_set(3, 0, 0x000FFFFF,
-        0xF2, 0xA0);
+            0xF2, 0xA0);
 
     // ring3
     gdt_set(4, 0, 0x000FFFFF,
-        0xFA, 0xA0);
+            0xFA, 0xA0);
 
     // TSS
     kmemset(&kernel_tss, 0, sizeof(kernel_tss));

@@ -7,6 +7,7 @@
 #define PIC2_COMMAND PIC2
 #define PIC2_DATA (PIC2+1)
 
+
 void pic_remap(void)
 {
     outb(PIC1_COMMAND, 0x11);

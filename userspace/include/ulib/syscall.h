@@ -1,17 +1,25 @@
 #pragma once
+
 #include <stdint.h>
 #include <uapi/syscall_nr.h>
 
+
 static inline void sys_puts(const char *s)
 {
-    __asm__ volatile("mov $1,%%rax; mov %0,%%rdi; int $0x80"
-        :: "r"((uint64_t)s) : "rax","rdi");
+    __asm__ volatile(
+        "mov $1,%%rax; mov %0,%%rdi; int $0x80"
+        :: "r"((uint64_t)s)
+        : "rax","rdi"
+    );
 }
 
 static inline void sys_gets(char *buf, uint64_t max)
 {
-    __asm__ volatile("mov $4,%%rax; mov %0,%%rdi; mov %1,%%rsi; int $0x80"
-        :: "r"((uint64_t)buf), "r"(max) : "rax","rdi","rsi");
+    __asm__ volatile(
+        "mov $4,%%rax; mov %0,%%rdi; mov %1,%%rsi; int $0x80"
+        :: "r"((uint64_t)buf), "r"(max)
+        : "rax","rdi","rsi"
+    );
 }
 
 static inline void sys_exit(void)
@@ -29,54 +37,72 @@ static inline void sys_clear(void)
 static inline int64_t sys_readdir(const char *path, uint32_t idx, char *out)
 {
     uint64_t ret;
-    __asm__ volatile("mov $6,%%rax; int $0x80"
+    __asm__ volatile(
+        "mov $6,%%rax; int $0x80"
         : "=a"(ret)
         : "D"((uint64_t)path), "S"((uint64_t)idx), "d"((uint64_t)out)
-        : "memory");
+        : "memory"
+    );
     return (int64_t)ret;
 }
 
 static inline int64_t sys_mkdir(const char *path)
 {
     uint64_t ret;
-    __asm__ volatile("mov $7,%%rax; int $0x80"
-        : "=a"(ret) : "D"((uint64_t)path) : "memory");
+    __asm__ volatile(
+        "mov $7,%%rax; int $0x80"
+        : "=a"(ret)
+        : "D"((uint64_t)path)
+        : "memory"
+    );
     return (int64_t)ret;
 }
 
 static inline int64_t sys_mkfile(const char *path)
 {
     uint64_t ret;
-    __asm__ volatile("mov $8,%%rax; int $0x80"
-        : "=a"(ret) : "D"((uint64_t)path) : "memory");
+    __asm__ volatile(
+        "mov $8,%%rax; int $0x80"
+        : "=a"(ret)
+        : "D"((uint64_t)path)
+        : "memory"
+    );
     return (int64_t)ret;
 }
 
 static inline int64_t sys_rm(const char *path)
 {
     uint64_t ret;
-    __asm__ volatile("mov $9,%%rax; int $0x80"
-        : "=a"(ret) : "D"((uint64_t)path) : "memory");
+    __asm__ volatile(
+        "mov $9,%%rax; int $0x80"
+        : "=a"(ret)
+        : "D"((uint64_t)path)
+        : "memory"
+    );
     return (int64_t)ret;
 }
 
 static inline int64_t sys_read(const char *path, void *buf, uint64_t sz)
 {
     uint64_t ret;
-    __asm__ volatile("mov $10,%%rax; int $0x80"
+    __asm__ volatile(
+        "mov $10,%%rax; int $0x80"
         : "=a"(ret)
         : "D"((uint64_t)path), "S"((uint64_t)buf), "d"(sz)
-        : "memory");
+        : "memory"
+    );
     return (int64_t)ret;
 }
 
 static inline int64_t sys_write(const char *path, const void *buf, uint64_t sz)
 {
     uint64_t ret;
-    __asm__ volatile("mov $11,%%rax; int $0x80"
+    __asm__ volatile(
+        "mov $11,%%rax; int $0x80"
         : "=a"(ret)
         : "D"((uint64_t)path), "S"((uint64_t)buf), "d"(sz)
-        : "memory");
+        : "memory"
+    );
     return (int64_t)ret;
 }
 
@@ -107,15 +133,22 @@ static inline uint64_t sys_fsize(const char *path)
 static inline int64_t sys_chdir(const char *path)
 {
     uint64_t ret;
-    __asm__ volatile("mov $14,%%rax; int $0x80"
-        : "=a"(ret) : "D"((uint64_t)path) : "memory");
+    __asm__ volatile(
+        "mov $14,%%rax; int $0x80"
+        : "=a"(ret)
+        : "D"((uint64_t)path)
+        : "memory"
+    );
     return (int64_t)ret;
 }
 
 static inline void sys_getcwd(char *buf, uint64_t size)
 {
-    __asm__ volatile("mov $15,%%rax; int $0x80"
-        :: "D"((uint64_t)buf), "S"(size) : "rax", "memory");
+    __asm__ volatile(
+        "mov $15,%%rax; int $0x80"
+        :: "D"((uint64_t)buf), "S"(size)
+        : "rax", "memory"
+    );
 }
 
 static inline int64_t sys_mount(const char *source,
@@ -149,32 +182,44 @@ static inline int64_t sys_umount(const char *mountpoint)
 static inline int64_t sys_open(const char *path)
 {
     uint64_t ret;
-    __asm__ volatile("mov $18,%%rax; int $0x80"
-        : "=a"(ret) : "D"((uint64_t)path) : "memory");
+    __asm__ volatile(
+        "mov $18,%%rax; int $0x80"
+        : "=a"(ret)
+        : "D"((uint64_t)path)
+        : "memory"
+    );
     return (int64_t)ret;
 }
 static inline int64_t sys_close(int fd)
 {
     uint64_t ret;
-    __asm__ volatile("mov $19,%%rax; int $0x80"
-        : "=a"(ret) : "D"((uint64_t)fd) : "memory");
+    __asm__ volatile(
+        "mov $19,%%rax; int $0x80"
+        : "=a"(ret)
+        : "D"((uint64_t)fd)
+        : "memory"
+    );
     return (int64_t)ret;
 }
 static inline int64_t sys_fread(int fd, void *buf, uint64_t sz)
 {
     uint64_t ret;
-    __asm__ volatile("mov $20,%%rax; int $0x80"
+    __asm__ volatile(
+        "mov $20,%%rax; int $0x80"
         : "=a"(ret)
         : "D"((uint64_t)fd), "S"((uint64_t)buf), "d"(sz)
-        : "memory");
+        : "memory"
+    );
     return (int64_t)ret;
 }
 static inline int64_t sys_fwrite(int fd, const void *buf, uint64_t sz)
 {
     uint64_t ret;
-    __asm__ volatile("mov $21,%%rax; int $0x80"
+    __asm__ volatile(
+        "mov $21,%%rax; int $0x80"
         : "=a"(ret)
         : "D"((uint64_t)fd), "S"((uint64_t)buf), "d"(sz)
-        : "memory");
+        : "memory"
+    );
     return (int64_t)ret;
 }

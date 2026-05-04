@@ -1,5 +1,7 @@
 #pragma once
+
 #include <stdint.h>
+
 
 // Initialize the keyboard
 void kb_init(void);

@@ -15,6 +15,7 @@
 
 static char kernel_cwd[256] = "/";
 
+
 uint64_t syscall_dispatch(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3)
 {
     switch (num) {
@@ -24,23 +25,30 @@ uint64_t syscall_dispatch(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3)
     case SYS_PUTS: {
         const char *s = (const char *)a1;
         while (*s)
-            fb_putchar_cursor_utf8(*s++, 0xFFFFFF, 0x0D0D1A);
+                fb_putchar_cursor_utf8(*s++, 0xFFFFFF, 0x0D0D1A);
         return 0;
     }
     case SYS_GETCHAR:
         return kb_getchar();
     case SYS_EXIT:
         elf_exec("/bin/shell");
-        for (;;) __asm__ volatile("hlt");
+        for (;;)
+                __asm__ volatile("hlt");
     case SYS_GETS: {
         char    *buf = (char *)a1;
         uint64_t max = a2;
         uint64_t i   = 0;
         while (i < max - 1) {
             char c = kb_getchar();
-            if (c == '\n') { fb_putchar_cursor('\n', 0xFFFFFF, 0x0D0D1A); break; }
+            if (c == '\n') {
+                fb_putchar_cursor('\n', 0xFFFFFF, 0x0D0D1A);
+                break;
+            }
             if (c == '\b') {
-                if (i > 0) { i--; fb_putchar_cursor('\b', 0xFFFFFF, 0x0D0D1A); }
+                if (i > 0) {
+                    i--;
+                    fb_putchar_cursor('\b', 0xFFFFFF, 0x0D0D1A);
+                }
                 continue;
             }
             buf[i++] = c;
@@ -59,9 +67,11 @@ uint64_t syscall_dispatch(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3)
         uint32_t    idx  = (uint32_t)a2;
         char       *out  = (char *)a3;
         vfs_node_t *dir  = vfs_resolve(path);
-        if (!dir || !(dir->flags & VFS_FLAG_DIR)) return (uint64_t)-1;
+        if (!dir || !(dir->flags & VFS_FLAG_DIR))
+                return (uint64_t)-1;
         vfs_node_t *e = vnode_readdir(dir, idx);
-        if (!e) return (uint64_t)-1;
+        if (!e)
+                return (uint64_t)-1;
         kstrcpy(out, e->name, 256);
         return e->flags & VFS_FLAG_DIR ? 1 : 0;
     }
@@ -77,7 +87,8 @@ uint64_t syscall_dispatch(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3)
         return (uint64_t)vfs_unlink((const char *)a1);
     case SYS_READ: {
         vfs_node_t *node = vfs_resolve((const char *)a1);
-        if (!node || (node->flags & VFS_FLAG_DIR)) return (uint64_t)-1;
+        if (!node || (node->flags & VFS_FLAG_DIR))
+                return (uint64_t)-1;
         return (uint64_t)vnode_read(node, (void *)a2, 0, a3);
     }
     case SYS_WRITE: {
@@ -87,9 +98,11 @@ uint64_t syscall_dispatch(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3)
         vfs_node_t *node = vfs_resolve(path);
         if (!node) {
             node = vfs_mkfile(path);
-            if (!node) return (uint64_t)-1;
+            if (!node)
+                    return (uint64_t)-1;
         }
-        if (node->flags & VFS_FLAG_DIR) return (uint64_t)-1;
+        if (node->flags & VFS_FLAG_DIR)
+                return (uint64_t)-1;
         return (uint64_t)vnode_write(node, data, 0, size);
     }
     case SYS_EXEC: {
@@ -99,16 +112,18 @@ uint64_t syscall_dispatch(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3)
     }
     case SYS_FSIZE: {
         vfs_node_t *node = vfs_resolve((const char *)a1);
-        if (!node || (node->flags & VFS_FLAG_DIR)) return (uint64_t)-1;
+        if (!node || (node->flags & VFS_FLAG_DIR))
+                return (uint64_t)-1;
         return node->size;
     }
     case SYS_CHDIR: {
         const char *path = (const char *)a1;
         vfs_node_t *node = vfs_resolve(path);
-        if (!node || !(node->flags & VFS_FLAG_DIR)) return (uint64_t)-1;
+        if (!node || !(node->flags & VFS_FLAG_DIR))
+                return (uint64_t)-1;
         kstrcpy(kernel_cwd, path, 256);
         return 0;
-    }   
+    }
     case SYS_GETCWD: {
         char    *buf  = (char *)a1;
         uint64_t size = a2;
@@ -122,39 +137,43 @@ uint64_t syscall_dispatch(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3)
 
         vfs_node_t *target = vfs_resolve(mountpoint);
         if (!target || !(target->flags & VFS_FLAG_DIR))
-            return (uint64_t)-1;
+                return (uint64_t)-1;
 
         vfs_node_t *fs = NULL;
 
         if (kstrcmp(fstype, "proc") == 0) {
             fs = procfs_create();
-            if (!fs) return (uint64_t)-1;
+            if (!fs)
+                    return (uint64_t)-1;
             procfs_register("mem_total",  proc_mem_total_read);
             procfs_register("mem_free", proc_mem_free_read);
             procfs_register("heap_total", proc_heap_total_read);
             procfs_register("heap_free",  proc_heap_free_read);
-            
+
             procfs_register("cpu_vendor", proc_cpu_vendor_read);
             procfs_register("cpu_model",  proc_cpu_model_read);
-            
+
         } else if (kstrcmp(fstype, "tmpfs") == 0) {
             fs = tmpfs_create();
-            if (!fs) return (uint64_t)-1;
+            if (!fs)
+                    return (uint64_t)-1;
 
         } else if (kstrcmp(fstype, "ext2") == 0) {
             int bus = source[0] - '0';
             int drv = source[2] - '0';
             fs = ext2_mount(bus, drv);
-            if (!fs) return (uint64_t)-1;
+            if (!fs)
+                    return (uint64_t)-1;
 
         } else {
             fs = vfs_resolve(source);
-            if (!fs) return (uint64_t)-1;
+            if (!fs)
+                    return (uint64_t)-1;
         }
 
         int r = vfs_mount(mountpoint, fs);
         return r == 0 ? 0 : (uint64_t)-1;
-    }   
+    }
     case SYS_UMOUNT: {
         const char *mountpoint = (const char *)a1;
 
@@ -162,7 +181,8 @@ uint64_t syscall_dispatch(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3)
         const char *last = mountpoint;
         int slash = -1;
         for (int i = 0; mountpoint[i]; i++)
-            if (mountpoint[i] == '/') slash = i;
+                if (mountpoint[i] == '/')
+                        slash = i;
 
         if (slash <= 0) {
             parent[0] = '/'; parent[1] = '\0';
@@ -175,14 +195,14 @@ uint64_t syscall_dispatch(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3)
 
         vfs_node_t *parent_node = vfs_resolve(parent);
         if (!parent_node || !(parent_node->flags & VFS_FLAG_DIR))
-            return (uint64_t)-1;
+                return (uint64_t)-1;
 
         if (!parent_node->ops || !parent_node->ops->finddir)
-            return (uint64_t)-1;
+                return (uint64_t)-1;
 
         vfs_node_t *target = parent_node->ops->finddir(parent_node, last);
         if (!target || !(target->flags & VFS_FLAG_MOUNTPT))
-            return (uint64_t)-1;
+                return (uint64_t)-1;
 
         target->mount = NULL;
         target->flags &= ~VFS_FLAG_MOUNTPT;
@@ -191,14 +211,16 @@ uint64_t syscall_dispatch(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3)
 	case SYS_OPEN: {
 	    const char *path  = (const char *)a1;
 	    vfs_node_t *node  = vfs_resolve(path);
-	    if (!node || (node->flags & VFS_FLAG_DIR)) return (uint64_t)-1;
+	    if (!node || (node->flags & VFS_FLAG_DIR))
+                return (uint64_t)-1;
 	    int fd = alloc_fd(node);
 	    return (fd >= 0) ? (uint64_t)fd : (uint64_t)-1;
 	}
 	case SYS_CLOSE: {
 	    int fd = (int)a1;
 	    fd_entry_t *e = get_fd(fd);
-	    if (!e) return (uint64_t)-1;
+	    if (!e)
+                return (uint64_t)-1;
 	    free_fd(fd);
 	    return 0;
 	}
@@ -207,9 +229,11 @@ uint64_t syscall_dispatch(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3)
 	    void    *buf = (void *)a2;
 	    uint64_t sz  = a3;
 	    fd_entry_t *e = get_fd(fd);
-	    if (!e) return (uint64_t)-1;
+	    if (!e)
+                return (uint64_t)-1;
 	    int64_t n = vnode_read(e->node, buf, e->offset, sz);
-	    if (n > 0) e->offset += n;
+	    if (n > 0)
+                e->offset += n;
 	    return (uint64_t)n;
 	}
 	case SYS_FWRITE: {
@@ -217,9 +241,11 @@ uint64_t syscall_dispatch(uint64_t num, uint64_t a1, uint64_t a2, uint64_t a3)
 	    const void *buf  = (const void *)a2;
 	    uint64_t    sz   = a3;
 	    fd_entry_t *e = get_fd(fd);
-	    if (!e) return (uint64_t)-1;
+	    if (!e)
+                return (uint64_t)-1;
 	    int64_t n = vnode_write(e->node, buf, e->offset, sz);
-	    if (n > 0) e->offset += n;
+	    if (n > 0)
+                e->offset += n;
 	    return (uint64_t)n;
 	}
     default:

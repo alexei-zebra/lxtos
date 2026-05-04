@@ -4,6 +4,7 @@
 
 #define STACK_SIZE 0x4000
 
+
 static uint8_t *kernel_stack;
 extern struct tss kernel_tss;
 

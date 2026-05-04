@@ -1,4 +1,5 @@
 #pragma once
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -13,6 +14,7 @@
 #define VFS_MAX_PATH  1024
 #define VFS_MAX_MOUNTS 16
 #define VFS_MAX_FDS    64
+
 
 struct vfs_node;
 

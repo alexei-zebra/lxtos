@@ -1,7 +1,10 @@
 #pragma once
+
 #include <fs/vfs.h>
 
+
 typedef int64_t (*procfs_read_fn)(void *buf, uint64_t size);
+
 
 // Create the /proc filesystem
 vfs_node_t *procfs_create(void);

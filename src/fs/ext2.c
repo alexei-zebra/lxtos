@@ -4,6 +4,7 @@
 #include <lib/kmalloc.h>
 #include <lib/kstring.h>
 
+
 typedef struct {
     int      bus;
     int      drive;
@@ -19,6 +20,7 @@ typedef struct {
     uint32_t     ino_num;
     ext2_inode_t inode;
 } ext2_node_data_t;
+
 
 static uint32_t ext2_create_file(ext2_fs_t *fs, uint32_t dir_ino_num, const char *name);
 
