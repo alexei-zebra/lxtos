@@ -2,7 +2,6 @@
 #include <console/font.h>
 #include <stdint.h>
 
-
 static void    *fb_addr;
 uint64_t        fb_width;
 uint64_t        fb_height;
@@ -17,6 +16,12 @@ uint32_t fb_font_scale = 1;
 static uint32_t utf8_cp   = 0;
 static int      utf8_left = 0;
 
+static uint32_t term_fg = 0xFFFFFF;
+static uint32_t term_bg = 0x0D0D1A;
+
+static int esc_state = 0;
+static char esc_buf[16];
+static int esc_len = 0;
 
 void fb_init(void *addr, uint64_t width, uint64_t height, uint64_t pitch, uint16_t bpp)
 {
@@ -61,30 +66,20 @@ void fb_putchar(uint32_t x, uint32_t y, char c, uint32_t fg, uint32_t bg)
         }
 }
 
-void fb_puts(uint32_t x, uint32_t y, const char *s, uint32_t fg, uint32_t bg)
-{
-    uint32_t cx = x;
-    uint32_t cw = FONT_WIDTH  * fb_font_scale;
-    uint32_t ch = FONT_HEIGHT * fb_font_scale;
-    while (*s) {
-        if (*s == '\n') { cx = x; y += ch; }
-        else { fb_putchar(cx, y, *s, fg, bg); cx += cw; }
-        s++;
-    }
-}
-
 void fb_scroll(uint32_t bg)
 {
     uint32_t ch = FONT_HEIGHT * fb_font_scale;
     uint8_t *dst = (uint8_t *)fb_addr;
     uint8_t *src = (uint8_t *)fb_addr + ch * fb_pitch;
     uint64_t rows_to_move = fb_height - ch;
+
     for (uint64_t row = 0; row < rows_to_move; row++) {
         uint8_t *d = dst + row * fb_pitch;
         uint8_t *s = src + row * fb_pitch;
         for (uint64_t col = 0; col < fb_width * fb_bytes_per_pixel; col++)
             d[col] = s[col];
     }
+
     for (uint64_t row = rows_to_move; row < fb_height; row++) {
         uint8_t *p = dst + row * fb_pitch;
         for (uint64_t col = 0; col < fb_width; col++) {
@@ -102,6 +97,7 @@ void fb_newline(uint32_t bg)
     uint32_t ch = FONT_HEIGHT * fb_font_scale;
     fb_cursor_x  = 0;
     fb_cursor_y += ch;
+
     if (fb_cursor_y + ch > fb_height) {
         fb_scroll(bg);
         fb_cursor_y -= ch;
@@ -110,59 +106,97 @@ void fb_newline(uint32_t bg)
 
 void fb_putchar_cursor(char c, uint32_t fg, uint32_t bg)
 {
-    uint32_t cw = FONT_WIDTH  * fb_font_scale;
+    (void)fg;
+    (void)bg;
 
-    if (c == '\n') { fb_newline(bg); return; }
+    uint32_t cw = FONT_WIDTH * fb_font_scale;
+
+    if (c == '\n') { fb_newline(term_bg); return; }
+
     if (c == '\b') {
         if (fb_cursor_x >= cw) {
             fb_cursor_x -= cw;
-            fb_putchar(fb_cursor_x, fb_cursor_y, ' ', fg, bg);
+            fb_putchar(fb_cursor_x, fb_cursor_y, ' ', term_fg, term_bg);
         }
         return;
     }
-    fb_putchar(fb_cursor_x, fb_cursor_y, c, fg, bg);
+
+    fb_putchar(fb_cursor_x, fb_cursor_y, c, term_fg, term_bg);
     fb_cursor_x += cw;
+
     if (fb_cursor_x + cw > (uint32_t)fb_width)
-        fb_newline(bg);
+        fb_newline(term_bg);
 }
 
-static void fb_putcodepoint(uint32_t cp, uint32_t fg, uint32_t bg)
+static void handle_ansi(void)
 {
-    uint32_t cw = FONT_WIDTH  * fb_font_scale;
-    uint32_t ch = FONT_HEIGHT * fb_font_scale;
+    esc_buf[esc_len] = 0;
+    int code = 0;
 
-    if (cp >= 0x2800 && cp <= 0x28FF) {
-        uint8_t dots = cp & 0xFF;
-        int dot_col[8] = {0,0,0,1,1,1,0,1};
-        int dot_row[8] = {0,1,2,0,1,2,3,3};
-        int dw = (int)cw / 2;
-        int dh = (int)ch / 4;
-        for (uint32_t y = 0; y < ch; y++)
-            for (uint32_t x = 0; x < cw; x++)
-                fb_putpixel(fb_cursor_x + x, fb_cursor_y + y, bg);
-        for (int d = 0; d < 8; d++) {
-            if (!(dots & (1 << d))) continue;
-            int px = (int)fb_cursor_x + dot_col[d] * dw + dw / 4;
-            int py = (int)fb_cursor_y + dot_row[d] * dh + dh / 4;
-            for (int y = 0; y < dh - 1; y++)
-                for (int x = 0; x < dw - 1; x++)
-                    fb_putpixel((uint32_t)(px + x), (uint32_t)(py + y), fg);
+    for (int i = 0; i <= esc_len; i++) {
+        if (esc_buf[i] == ';' || esc_buf[i] == 0) {
+            switch (code) {
+                case 0: term_fg = 0xFFFFFF; break;
+                case 30: term_fg = 0x000000; break;
+                case 31: term_fg = 0xFF3333; break;
+                case 32: term_fg = 0x33FF33; break;
+                case 33: term_fg = 0xFFFF33; break;
+                case 34: term_fg = 0x3399FF; break;
+                case 35: term_fg = 0xFF33FF; break;
+                case 36: term_fg = 0x33FFFF; break;
+                case 37: term_fg = 0xFFFFFF; break;
+            }
+            code = 0;
+        } else {
+            code = code * 10 + (esc_buf[i] - '0');
         }
-        fb_cursor_x += cw;
-        if (fb_cursor_x + cw > (uint32_t)fb_width)
-            fb_newline(bg);
-        return;
     }
-    char c = (cp < 128) ? (char)cp : '?';
-    fb_putchar_cursor(c, fg, bg);
 }
 
 void fb_putchar_cursor_utf8(char byte, uint32_t fg, uint32_t bg)
 {
+    (void)fg;
+    (void)bg;
+
+    if (esc_state) {
+        if (esc_state == 1) {
+            if (byte == '[') {
+                esc_state = 2;
+                esc_len = 0;
+            } else {
+                esc_state = 0;
+            }
+            return;
+        }
+
+        if (esc_state == 2) {
+            if ((byte >= '0' && byte <= '9') || byte == ';') {
+                if (esc_len < 15)
+                    esc_buf[esc_len++] = byte;
+                return;
+            }
+
+            if (byte == 'm') {
+                handle_ansi();
+                esc_state = 0;
+                return;
+            }
+
+            esc_state = 0;
+            return;
+        }
+    }
+
+    if ((uint8_t)byte == 0x1B) {
+        esc_state = 1;
+        return;
+    }
+
     uint8_t b = (uint8_t)byte;
+
     if (b < 0x80) {
         utf8_left = 0;
-        fb_putchar_cursor(byte, fg, bg);
+        fb_putchar_cursor(byte, 0, 0);
     } else if (b >= 0xF0) {
         utf8_cp   = b & 0x07;
         utf8_left = 3;
@@ -176,8 +210,10 @@ void fb_putchar_cursor_utf8(char byte, uint32_t fg, uint32_t bg)
         if (utf8_left > 0) {
             utf8_cp = (utf8_cp << 6) | (b & 0x3F);
             utf8_left--;
-            if (utf8_left == 0)
-                fb_putcodepoint(utf8_cp, fg, bg);
+            if (utf8_left == 0) {
+                char c = (utf8_cp < 128) ? (char)utf8_cp : '?';
+                fb_putchar_cursor(c, 0, 0);
+            }
         }
     }
 }

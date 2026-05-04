@@ -7,3 +7,4 @@ void puts(const char *s);
 void gets(char *buf, int max);
 void putchar(char c);
 void printf(const char *fmt, ...);
+int  snprintf(char *buf, size_t size, const char *fmt, ...);

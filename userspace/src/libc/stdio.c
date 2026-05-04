@@ -135,3 +135,59 @@ void printf(const char *fmt, ...)
 
     va_end(ap);
 }
+
+int snprintf(char *buf, size_t size, const char *fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+
+    int pos = 0;
+    char tmp[64];
+
+    for (const char *p = fmt; *p && pos < (int)size - 1; p++) {
+        if (*p != '%') {
+            buf[pos++] = *p;
+            continue;
+        }
+        p++;
+        switch (*p) {
+            case 's': {
+                const char *s = va_arg(ap, const char *);
+                if (!s) s = "(null)";
+                while (*s && pos < (int)size - 1)
+                    buf[pos++] = *s++;
+                break;
+            }
+            case 'd':
+                itoa_buf((long)va_arg(ap, int), 10, tmp);
+                for (int i = 0; tmp[i] && pos < (int)size - 1; i++)
+                    buf[pos++] = tmp[i];
+                break;
+            case 'u':
+                utoa_buf((unsigned long)va_arg(ap, unsigned int), 10, tmp);
+                for (int i = 0; tmp[i] && pos < (int)size - 1; i++)
+                    buf[pos++] = tmp[i];
+                break;
+            case 'x':
+                utoa_buf((unsigned long)va_arg(ap, unsigned int), 16, tmp);
+                for (int i = 0; tmp[i] && pos < (int)size - 1; i++)
+                    buf[pos++] = tmp[i];
+                break;
+            case 'c':
+                buf[pos++] = (char)va_arg(ap, int);
+                break;
+            case '%':
+                buf[pos++] = '%';
+                break;
+            default:
+                buf[pos++] = '%';
+                if (pos < (int)size - 1)
+                    buf[pos++] = *p;
+                break;
+        }
+    }
+
+    buf[pos] = 0;
+    va_end(ap);
+    return pos;
+}
